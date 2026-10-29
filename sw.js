@@ -1,8 +1,9 @@
 // Service Worker for 100% Offline Capability
-const CACHE_NAME = 'monthly-planner-v1';
+const CACHE_NAME = 'monthly-planner-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './profile.png',
   './css/styles.css',
   './js/crypto.js',
   './js/conflict.js',
