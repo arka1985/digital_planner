@@ -20,6 +20,7 @@
     activeFilter: {
       search: '',
       category: '',
+      priority: '',
       status: ''
     },
     editingEventId: null
@@ -29,6 +30,27 @@
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
+  // The 14 Official Categories requested by Dr. Arkaprabha Sau
+  const PLANNER_CATEGORIES = [
+    "Academic",
+    "Official commitment",
+    "Research",
+    "Guest Lectures",
+    "Conference",
+    "Seminars",
+    "In Plant training programme",
+    "Institutional programme",
+    "Personal commitment",
+    "Family commitment",
+    "Friends request",
+    "Workshop",
+    "Non Official programmes",
+    "Others"
+  ];
+
+  // Multi-Select Category State in Modal
+  let currentSelectedCategories = [];
 
   // DOM Elements
   const el = {
@@ -72,6 +94,7 @@
     // Search & Filters
     filterSearchInput: document.getElementById('filter-search-input'),
     filterCategorySelect: document.getElementById('filter-category-select'),
+    filterPrioritySelect: document.getElementById('filter-priority-select'),
     filterStatusSelect: document.getElementById('filter-status-select'),
     filteredCountText: document.getElementById('filtered-count-text'),
     btnToolbarAdd2027Holidays: document.getElementById('btn-toolbar-add-2027-holidays'),
@@ -98,6 +121,9 @@
     modalConflictBanner: document.getElementById('modal-conflict-banner'),
     modalConflictList: document.getElementById('modal-conflict-list'),
     eventTitle: document.getElementById('event-title'),
+    eventTaskName: document.getElementById('event-task-name'),
+    categoryChipsGrid: document.getElementById('category-chips-grid'),
+    selectedCategoriesCount: document.getElementById('selected-categories-count'),
     eventCategory: document.getElementById('event-category'),
     eventStatus: document.getElementById('event-status'),
     eventStartDate: document.getElementById('event-start-date'),
@@ -269,16 +295,31 @@
   function getFilteredEvents() {
     const q = state.activeFilter.search.toLowerCase().trim();
     const cat = state.activeFilter.category;
+    const pri = state.activeFilter.priority;
     const st = state.activeFilter.status;
 
     return state.events.filter(item => {
-      // Search
+      // Search (title, taskName, location, notes, and all categories)
       if (q) {
-        const text = `${item.title} ${item.location || ''} ${item.notes || ''} ${item.category}`.toLowerCase();
+        const catStr = Array.isArray(item.categories) ? item.categories.join(' ') : (item.category || '');
+        const text = `${item.title} ${item.taskName || ''} ${item.location || ''} ${item.notes || ''} ${catStr}`.toLowerCase();
         if (!text.includes(q)) return false;
       }
-      // Category
-      if (cat && item.category !== cat) return false;
+
+      // Category (supports multi-category array or legacy singular category)
+      if (cat) {
+        const itemCats = Array.isArray(item.categories) && item.categories.length > 0
+          ? item.categories
+          : (item.category ? [item.category] : []);
+        if (!itemCats.includes(cat)) return false;
+      }
+
+      // Priority Filter (high, medium, low)
+      if (pri) {
+        const itemPri = (item.priority || 'medium').toLowerCase();
+        if (itemPri !== pri.toLowerCase()) return false;
+      }
+
       // Status
       if (st) {
         if (st === 'conflicts') {
@@ -395,11 +436,23 @@
     }
   }
 
+  function getPriorityBadgeHtml(priority) {
+    const p = (priority || 'medium').toLowerCase();
+    if (p === 'high') {
+      return `<span class="priority-flag-pill flag-high" title="High Priority (Red Flag)">🚩 High</span>`;
+    } else if (p === 'medium') {
+      return `<span class="priority-flag-pill flag-medium" title="Medium Priority (Yellow Flag)">🚩 Medium</span>`;
+    } else if (p === 'low') {
+      return `<span class="priority-flag-pill flag-low" title="Low Priority (Green Flag)">🚩 Low</span>`;
+    }
+    return '';
+  }
+
   function createDiaryEventElement(ev) {
     const item = document.createElement('div');
     const hasConflict = state.conflictsMap.has(ev.id);
     const isCancelled = ev.status === 'cancelled';
-    const isHoliday = ev.category === 'Holiday';
+    const isHoliday = (ev.category === 'Holiday' || (Array.isArray(ev.categories) && ev.categories.includes('Holiday')));
 
     item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''} ${isHoliday ? 'is-holiday' : ''}`;
     item.dataset.id = ev.id;
@@ -414,8 +467,8 @@
       timeHtml = `<span class="event-time-badge">⏰ ${timeStr}</span>`;
     }
 
-    // Category badge
-    const catClass = getCategoryClass(ev.category);
+    // Priority Flag Pill
+    const priorityHtml = getPriorityBadgeHtml(ev.priority);
 
     // Conflict pill
     let conflictHtml = '';
@@ -452,6 +505,20 @@
 
     const titlePrefix = isHoliday ? '🏛️ ' : '';
 
+    // Task Name Pill
+    const taskNameHtml = ev.taskName
+      ? `<div class="event-task-name">📋 <span>${escapeHtml(ev.taskName)}</span></div>`
+      : '';
+
+    // Multi-Select Category Badges
+    const categories = Array.isArray(ev.categories) && ev.categories.length > 0
+      ? ev.categories
+      : (ev.category ? [ev.category] : ['Others']);
+
+    const catPillsHtml = categories.map(cat => `
+      <span class="category-pill ${getCategoryClass(cat)}">${escapeHtml(cat)}</span>
+    `).join('');
+
     item.innerHTML = `
       <div class="event-main-col">
         <div class="event-date-row">
@@ -461,12 +528,14 @@
           ${statusSymbol}
         </div>
         <div class="event-title-text">${titlePrefix}${escapeHtml(ev.title)}</div>
+        ${taskNameHtml}
         ${ev.notes ? `<div class="event-notes-subtext">${escapeHtml(ev.notes)}</div>` : ''}
         ${ev.location ? `<div class="event-notes-subtext" style="color: var(--text-light);">📍 ${escapeHtml(ev.location)}</div>` : ''}
         ${persistentConflictHtml}
       </div>
       <div class="event-side-badges">
-        <span class="category-pill ${catClass}">${escapeHtml(ev.category || 'General')}</span>
+        ${priorityHtml}
+        ${catPillsHtml}
       </div>
     `;
 
@@ -496,17 +565,9 @@
   }
 
   function getCategoryClass(cat) {
-    switch (cat) {
-      case 'Medical': return 'cat-medical';
-      case 'Doctor Duty': return 'cat-doctor-duty';
-      case 'Industry': return 'cat-industry';
-      case 'Academic': return 'cat-academic';
-      case 'Conference': return 'cat-conference';
-      case 'Homeopathy': return 'cat-homeopathy';
-      case 'Travel': return 'cat-travel';
-      case 'Holiday': return 'cat-holiday';
-      default: return 'cat-other';
-    }
+    if (!cat) return 'cat-others';
+    const slug = cat.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return `cat-${slug}`;
   }
 
   function timeToMinutes(tStr) {
@@ -560,9 +621,11 @@
       let chipsHtml = '';
       daysEvents.forEach(ev => {
         const hasConflict = state.conflictsMap.has(ev.id);
+        const priFlag = ev.priority === 'high' ? '🚩 ' : (ev.priority === 'low' ? '🟢 ' : '');
+        const tooltip = `${ev.title}${ev.taskName ? ' (' + ev.taskName + ')' : ''}`;
         chipsHtml += `
-          <div class="calendar-event-chip ${hasConflict ? 'has-conflict' : ''}" data-id="${ev.id}" title="${escapeHtml(ev.title)}">
-            ${hasConflict ? '⚠️ ' : ''}${escapeHtml(ev.title)}
+          <div class="calendar-event-chip ${hasConflict ? 'has-conflict' : ''}" data-id="${ev.id}" title="${escapeHtml(tooltip)}">
+            ${hasConflict ? '⚠️ ' : priFlag}${escapeHtml(ev.title)}
           </div>
         `;
       });
@@ -667,6 +730,71 @@
   }
 
   // ---------------------------------------------------------
+  // CATEGORY & PRIORITY CONTROLS IN MODAL
+  // ---------------------------------------------------------
+  function renderCategoryChips(selectedList = []) {
+    currentSelectedCategories = Array.isArray(selectedList) ? [...selectedList] : (selectedList ? [selectedList] : []);
+    if (!el.categoryChipsGrid) return;
+    el.categoryChipsGrid.innerHTML = '';
+
+    PLANNER_CATEGORIES.forEach(cat => {
+      const isSelected = currentSelectedCategories.includes(cat);
+      const chip = document.createElement('div');
+      chip.className = `category-chip ${isSelected ? 'selected' : ''}`;
+      chip.dataset.category = cat;
+      chip.innerHTML = `${isSelected ? '✓ ' : ''}${escapeHtml(cat)}`;
+      chip.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleCategorySelection(cat);
+      });
+      el.categoryChipsGrid.appendChild(chip);
+    });
+    updateSelectedCategoriesCount();
+  }
+
+  function toggleCategorySelection(cat) {
+    const idx = currentSelectedCategories.indexOf(cat);
+    if (idx >= 0) {
+      currentSelectedCategories.splice(idx, 1);
+    } else {
+      currentSelectedCategories.push(cat);
+    }
+    const chips = el.categoryChipsGrid.querySelectorAll('.category-chip');
+    chips.forEach(c => {
+      const cCat = c.dataset.category;
+      const isSel = currentSelectedCategories.includes(cCat);
+      c.className = `category-chip ${isSel ? 'selected' : ''}`;
+      c.innerHTML = `${isSel ? '✓ ' : ''}${escapeHtml(cCat)}`;
+    });
+    updateSelectedCategoriesCount();
+  }
+
+  function updateSelectedCategoriesCount() {
+    if (!el.selectedCategoriesCount) return;
+    const count = currentSelectedCategories.length;
+    el.selectedCategoriesCount.textContent = count === 1 ? '1 selected' : `${count} selected`;
+  }
+
+  function setSelectedPriority(priority = 'medium') {
+    const p = (priority || 'medium').toLowerCase();
+    const radios = document.querySelectorAll('input[name="event-priority"]');
+    radios.forEach(r => {
+      const isMatch = r.value === p;
+      r.checked = isMatch;
+      const label = r.closest('.priority-choice');
+      if (label) {
+        if (isMatch) label.classList.add('active');
+        else label.classList.remove('active');
+      }
+    });
+  }
+
+  function getSelectedPriority() {
+    const checked = document.querySelector('input[name="event-priority"]:checked');
+    return checked ? checked.value : 'medium';
+  }
+
+  // ---------------------------------------------------------
   // MODAL: ADD / EDIT SCHEDULE & LIVE CONFLICT CHECKING
   // ---------------------------------------------------------
   function openNewEventModal(defaultDate = null) {
@@ -674,6 +802,10 @@
     el.modalEventTitle.textContent = 'Add Schedule Entry';
     el.btnDeleteEvent.style.display = 'none';
     el.formEvent.reset();
+
+    if (el.eventTaskName) el.eventTaskName.value = '';
+    setSelectedPriority('medium');
+    renderCategoryChips(['Academic']);
 
     const dateToUse = defaultDate || `${state.currentYear}-01-01`;
     el.eventStartDate.value = dateToUse;
@@ -696,7 +828,14 @@
 
     el.eventId.value = ev.id;
     el.eventTitle.value = ev.title;
-    el.eventCategory.value = ev.category || 'Doctor Duty';
+    if (el.eventTaskName) el.eventTaskName.value = ev.taskName || '';
+    setSelectedPriority(ev.priority || 'medium');
+
+    const cats = Array.isArray(ev.categories) && ev.categories.length > 0
+      ? ev.categories
+      : (ev.category ? [ev.category] : ['Official commitment']);
+    renderCategoryChips(cats);
+
     el.eventStatus.value = ev.status || 'confirmed';
     el.eventStartDate.value = ev.startDate;
     el.eventEndDate.value = ev.endDate || ev.startDate;
@@ -1021,9 +1160,25 @@
       state.activeFilter.category = e.target.value;
       renderCurrentView();
     });
+    if (el.filterPrioritySelect) {
+      el.filterPrioritySelect.addEventListener('change', (e) => {
+        state.activeFilter.priority = e.target.value;
+        renderCurrentView();
+      });
+    }
     el.filterStatusSelect.addEventListener('change', (e) => {
       state.activeFilter.status = e.target.value;
       renderCurrentView();
+    });
+
+    // Priority Segmented Control Clicks in Modal
+    document.querySelectorAll('.priority-choice').forEach(choice => {
+      choice.addEventListener('click', () => {
+        const radio = choice.querySelector('input[type="radio"]');
+        if (radio) {
+          setSelectedPriority(radio.value);
+        }
+      });
     });
 
     // Print
@@ -1101,7 +1256,10 @@
     el.formEvent.addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = el.eventTitle.value.trim();
-      const category = el.eventCategory.value;
+      const taskName = el.eventTaskName ? el.eventTaskName.value.trim() : '';
+      const priority = getSelectedPriority();
+      const categories = currentSelectedCategories.length > 0 ? [...currentSelectedCategories] : ['Others'];
+      const category = categories[0];
       const status = el.eventStatus.value;
       const startDate = el.eventStartDate.value;
       let endDate = el.eventEndDate.value || startDate;
@@ -1119,7 +1277,7 @@
         if (index !== -1) {
           state.events[index] = {
             ...state.events[index],
-            title, category, status, startDate, endDate, isAllDay, startTime, endTime, location, notes,
+            title, taskName, priority, categories, category, status, startDate, endDate, isAllDay, startTime, endTime, location, notes,
             updatedAt: new Date().toISOString()
           };
         }
@@ -1128,7 +1286,7 @@
         // Add new
         const newEvent = {
           id: 'ev-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-          title, category, status, startDate, endDate, isAllDay, startTime, endTime, location, notes,
+          title, taskName, priority, categories, category, status, startDate, endDate, isAllDay, startTime, endTime, location, notes,
           createdAt: new Date().toISOString()
         };
         state.events.push(newEvent);

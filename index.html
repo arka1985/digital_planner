@@ -200,15 +200,27 @@
 
         <select id="filter-category-select" class="category-filter-select">
           <option value="">All Categories</option>
-          <option value="Doctor Duty">Doctor Duty</option>
-          <option value="Medical">Medical / Paramedical</option>
-          <option value="Industry">Industry / Power Grid</option>
-          <option value="Academic">Academic / Lecture</option>
-          <option value="Conference">Conference / FDP</option>
-          <option value="Homeopathy">Homeopathy</option>
-          <option value="Travel">Travel / Personal</option>
-          <option value="Holiday">Holiday / Gazetted</option>
-          <option value="Other">Other</option>
+          <option value="Academic">Academic</option>
+          <option value="Official commitment">Official commitment</option>
+          <option value="Research">Research</option>
+          <option value="Guest Lectures">Guest Lectures</option>
+          <option value="Conference">Conference</option>
+          <option value="Seminars">Seminars</option>
+          <option value="In Plant training programme">In Plant training programme</option>
+          <option value="Institutional programme">Institutional programme</option>
+          <option value="Personal commitment">Personal commitment</option>
+          <option value="Family commitment">Family commitment</option>
+          <option value="Friends request">Friends request</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Non Official programmes">Non Official programmes</option>
+          <option value="Others">Others</option>
+        </select>
+
+        <select id="filter-priority-select" class="category-filter-select">
+          <option value="">All Priorities</option>
+          <option value="high">🚩 High (Red Flag)</option>
+          <option value="medium">🚩 Medium (Yellow Flag)</option>
+          <option value="low">🚩 Low (Green Flag)</option>
         </select>
 
         <select id="filter-status-select" class="category-filter-select">
@@ -319,37 +331,58 @@
             </ul>
           </div>
 
-          <!-- Title -->
+          <!-- Schedule / Duty Title -->
           <div class="form-group">
             <label for="event-title">Schedule / Duty Title *</label>
             <input type="text" id="event-title" class="form-input" placeholder="e.g. DVC - DOCTOR, Power Grid, AIIPH Meeting" required>
           </div>
 
-          <!-- Category & Status -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="event-category">Category</label>
-              <select id="event-category" class="form-select">
-                <option value="Doctor Duty">Doctor Duty</option>
-                <option value="Medical">Medical / Paramedical</option>
-                <option value="Industry">Industry / Power Grid</option>
-                <option value="Academic">Academic / Lecture</option>
-                <option value="Conference">Conference / FDP</option>
-                <option value="Homeopathy">Homeopathy</option>
-                <option value="Travel">Travel / Personal</option>
-                <option value="Holiday">Holiday / Gazetted</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+          <!-- Name of the task (NEW) -->
+          <div class="form-group">
+            <label for="event-task-name">Name of the Task</label>
+            <input type="text" id="event-task-name" class="form-input" placeholder="e.g. Conduct Workshop, Patient OPD, Keynote Lecture, Board Meeting...">
+          </div>
 
-            <div class="form-group">
-              <label for="event-status">Status</label>
-              <select id="event-status" class="form-select">
-                <option value="confirmed">Confirmed ✓</option>
-                <option value="tentative">Tentative (?)</option>
-                <option value="cancelled">Cancelled (Strikethrough)</option>
-              </select>
+          <!-- Priority Level (NEW: High Red Flag, Medium Yellow Flag, Low Green Flag) -->
+          <div class="form-group">
+            <label style="font-size: 0.85rem; font-weight: 700;">Priority Level</label>
+            <div class="priority-segmented-control">
+              <label class="priority-choice priority-choice-high" id="label-priority-high">
+                <input type="radio" name="event-priority" value="high">
+                <span>🚩 High (Red Flag)</span>
+              </label>
+              <label class="priority-choice priority-choice-medium active" id="label-priority-medium">
+                <input type="radio" name="event-priority" value="medium" checked>
+                <span>🚩 Medium (Yellow Flag)</span>
+              </label>
+              <label class="priority-choice priority-choice-low" id="label-priority-low">
+                <input type="radio" name="event-priority" value="low">
+                <span>🚩 Low (Green Flag)</span>
+              </label>
             </div>
+          </div>
+
+          <!-- Category (Multiple Selection Type!) -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="font-size: 0.85rem; font-weight: 700;">
+                Category <span style="font-weight: normal; color: var(--text-muted); font-size: 0.78rem;">(Select one or multiple)</span>
+              </label>
+              <span id="selected-categories-count" style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">0 selected</span>
+            </div>
+            <div id="category-chips-grid" class="category-chips-grid">
+              <!-- Dynamically populated 14 categories -->
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label for="event-status">Status</label>
+            <select id="event-status" class="form-select">
+              <option value="confirmed">Confirmed ✓</option>
+              <option value="tentative">Tentative (?)</option>
+              <option value="cancelled">Cancelled (Strikethrough)</option>
+            </select>
           </div>
 
           <!-- Dates with Day Name indicators -->
