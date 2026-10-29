@@ -119,10 +119,12 @@
   <input type="file" id="import-file-input" accept=".json" style="display: none;">
 
   <!-- =========================================================================
-       APPLICATION HEADER
+       APPLICATION CONTAINER (Hidden while locked)
        ========================================================================= -->
-  <header class="app-header">
-    <div class="header-container">
+  <div id="app-container" style="display: none;">
+    <!-- APPLICATION HEADER -->
+    <header class="app-header">
+      <div class="header-container">
       <!-- Brand & Profile -->
       <div class="brand-section">
         <div class="app-logo-badge">
@@ -294,6 +296,7 @@
       <!-- Populated dynamically -->
     </section>
   </main>
+  </div> <!-- /app-container -->
 
   <!-- =========================================================================
        MODAL: ADD / EDIT SCHEDULE ENTRY (WITH REAL-TIME CONFLICT WARNING)

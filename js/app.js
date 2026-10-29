@@ -50,6 +50,9 @@
     btnSetupImportLink: document.getElementById('btn-setup-import-link'),
     importFileInput: document.getElementById('import-file-input'),
 
+    // App Wrapper
+    appContainer: document.getElementById('app-container'),
+
     // App Header
     appProfileTitle: document.getElementById('app-profile-title'),
     navBtnDiary: document.getElementById('nav-btn-diary'),
@@ -172,6 +175,10 @@
     el.unlockSection.style.display = 'block';
     el.setupSection.style.display = 'none';
 
+    if (el.appContainer) {
+      el.appContainer.style.display = 'none';
+    }
+
     if (el.tabLogin && el.tabSetup) {
       el.tabLogin.classList.add('active');
       el.tabSetup.classList.remove('active');
@@ -187,6 +194,10 @@
     el.unlockSection.style.display = 'none';
     el.setupSection.style.display = 'block';
 
+    if (el.appContainer) {
+      el.appContainer.style.display = 'none';
+    }
+
     if (el.tabLogin && el.tabSetup) {
       el.tabSetup.classList.add('active');
       el.tabLogin.classList.remove('active');
@@ -200,6 +211,9 @@
 
   function unlockSuccess(data) {
     el.lockScreen.style.display = 'none';
+    if (el.appContainer) {
+      el.appContainer.style.display = 'block';
+    }
     state.events = data.events || [];
     state.profile = data.profile || state.profile;
     state.currentYear = state.profile.defaultYear || 2026;
