@@ -207,11 +207,38 @@
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+        <!-- Layout Switcher (See all 12 months at once) -->
+        <div class="nav-pills" style="padding: 0.15rem;">
+          <button id="btn-layout-4col" class="pill-btn active" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;" title="12-Month Wall Grid: View all 12 months together">
+            ⊞ All 12 Months
+          </button>
+          <button id="btn-layout-2col" class="pill-btn" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;" title="2-Column Diary View">
+            ⊟ 2-Col Diary
+          </button>
+        </div>
+
         <button id="btn-toolbar-add-2027-holidays" class="btn btn-secondary" style="font-size: 0.82rem;" title="Import all 17 Central Government Gazetted Holidays for 2027">
           🏛️ 2027 Holidays
         </button>
         <span id="filtered-count-text" style="font-size: 0.85rem; color: var(--text-muted);">Showing all entries</span>
       </div>
+    </div>
+
+    <!-- Month Quick-Jump Strip: Browse & jump to any of the 12 months immediately -->
+    <div id="month-jump-strip" class="month-jump-strip">
+      <span class="jump-label">Jump to Month:</span>
+      <button class="jump-month-btn" data-month="0">Jan</button>
+      <button class="jump-month-btn" data-month="1">Feb</button>
+      <button class="jump-month-btn" data-month="2">Mar</button>
+      <button class="jump-month-btn" data-month="3">Apr</button>
+      <button class="jump-month-btn" data-month="4">May</button>
+      <button class="jump-month-btn" data-month="5">Jun</button>
+      <button class="jump-month-btn" data-month="6">Jul</button>
+      <button class="jump-month-btn" data-month="7">Aug</button>
+      <button class="jump-month-btn" data-month="8">Sep</button>
+      <button class="jump-month-btn" data-month="9">Oct</button>
+      <button class="jump-month-btn" data-month="10">Nov</button>
+      <button class="jump-month-btn" data-month="11">Dec</button>
     </div>
 
     <!-- VIEW 1: 12-MONTH NOTEBOOK GRID (Physical Diary Style) -->
@@ -264,11 +291,14 @@
         <div class="modal-body">
           <input type="hidden" id="event-id">
 
-          <!-- Live Conflict Alert Banner (Updates in real-time) -->
+          <!-- Live Conflict Alert Banner (Updates in real-time in BOLD RED) -->
           <div id="modal-conflict-banner" class="conflict-alert-box" style="display: none;">
             <div class="conflict-alert-title">
-              <span>⚠️ Schedule Conflict Warning!</span>
+              <span>🚨 SCHEDULE CONFLICT DETECTED! (OVERLAP WARNING)</span>
             </div>
+            <p style="font-size: 0.78rem; color: #b91c1c; margin-bottom: 0.2rem;">
+              <strong>Note:</strong> If you proceed and save, this warning will remain permanently on your planner cards until rescheduled.
+            </p>
             <ul id="modal-conflict-list" class="conflict-alert-list">
               <!-- Dynamically populated conflict descriptions -->
             </ul>
@@ -307,16 +337,18 @@
             </div>
           </div>
 
-          <!-- Dates -->
+          <!-- Dates with Day Name indicators -->
           <div class="form-row">
             <div class="form-group">
               <label for="event-start-date">Start Date *</label>
               <input type="date" id="event-start-date" class="form-input" required>
+              <div id="event-start-day-name" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); min-height: 1.15rem; margin-top: 0.15rem;"></div>
             </div>
 
             <div class="form-group">
               <label for="event-end-date">End Date (For multi-day ranges)</label>
               <input type="date" id="event-end-date" class="form-input">
+              <div id="event-end-day-name" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); min-height: 1.15rem; margin-top: 0.15rem;"></div>
             </div>
           </div>
 

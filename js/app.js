@@ -9,6 +9,7 @@
     currentYear: 2026,
     currentView: 'diary', // 'diary' | 'calendar' | 'agenda'
     calendarMonth: 0,     // 0 = Jan, 11 = Dec
+    diaryLayout: localStorage.getItem('planner_diary_layout') || '4col', // '4col' (All 12 Months) or '2col' (Notebook)
     events: [],
     profile: {
       name: "Dr. Arkaprabha Sau",
@@ -70,6 +71,9 @@
     filterStatusSelect: document.getElementById('filter-status-select'),
     filteredCountText: document.getElementById('filtered-count-text'),
     btnToolbarAdd2027Holidays: document.getElementById('btn-toolbar-add-2027-holidays'),
+    btnLayout4Col: document.getElementById('btn-layout-4col'),
+    btnLayout2Col: document.getElementById('btn-layout-2col'),
+    monthJumpStrip: document.getElementById('month-jump-strip'),
 
     // Views
     viewDiary: document.getElementById('view-diary'),
@@ -94,6 +98,8 @@
     eventStatus: document.getElementById('event-status'),
     eventStartDate: document.getElementById('event-start-date'),
     eventEndDate: document.getElementById('event-end-date'),
+    eventStartDayName: document.getElementById('event-start-day-name'),
+    eventEndDayName: document.getElementById('event-end-day-name'),
     eventAllday: document.getElementById('event-allday'),
     eventTimesRow: document.getElementById('event-times-row'),
     eventStartTime: document.getElementById('event-start-time'),
@@ -268,12 +274,23 @@
 
   // ---------------------------------------------------------
   // RENDER VIEW 1: 12-MONTH NOTEBOOK GRID
-  // (Physical notebook aesthetic matching Dr. Sau's diary)
+  // (Displays all 12 months with density options & Day Names)
   // ---------------------------------------------------------
   function renderDiaryView() {
     el.viewDiary.innerHTML = '';
+    const layout = state.diaryLayout || '4col';
+    el.viewDiary.className = `diary-grid layout-${layout}`;
+
+    if (el.btnLayout4Col && el.btnLayout2Col) {
+      el.btnLayout4Col.className = `pill-btn ${layout === '4col' ? 'active' : ''}`;
+      el.btnLayout2Col.className = `pill-btn ${layout === '2col' ? 'active' : ''}`;
+    }
+
     const filtered = getFilteredEvents();
     updateFilteredCount(filtered.length, state.events.length);
+
+    // Update Month Quick-Jump Strip buttons
+    const jumpBtns = el.monthJumpStrip ? el.monthJumpStrip.querySelectorAll('.jump-month-btn') : [];
 
     for (let monthIdx = 0; monthIdx < 12; monthIdx++) {
       const monthNumberStr = String(monthIdx + 1).padStart(2, '0');
@@ -288,12 +305,35 @@
         return (s.startsWith(monthPrefix) || (s <= `${monthPrefix}-31` && e >= `${monthPrefix}-01`));
       });
 
+      // Count conflicts in this month
+      const monthConflictsCount = monthEvents.filter(ev => state.conflictsMap.has(ev.id)).length;
+
+      // Update Jump button
+      if (jumpBtns[monthIdx]) {
+        const btn = jumpBtns[monthIdx];
+        if (monthConflictsCount > 0) {
+          btn.classList.add('has-conflicts');
+          btn.innerHTML = `🚨 ${monthName.slice(0, 3)} (${monthConflictsCount})`;
+          btn.title = `${monthName}: ${monthConflictsCount} active schedule conflict(s)!`;
+        } else {
+          btn.classList.remove('has-conflicts');
+          btn.textContent = monthName.slice(0, 3);
+          btn.title = `${monthName}: ${monthEvents.length} event(s)`;
+        }
+      }
+
       // Sort by startDate
       monthEvents.sort((a, b) => a.startDate.localeCompare(b.startDate));
 
       // Build Month Card
       const card = document.createElement('div');
       card.className = 'month-notebook-card';
+      card.id = `month-card-${monthIdx}`;
+
+      // Conflict warning badge in header if month has clashes
+      const conflictHeaderPill = monthConflictsCount > 0
+        ? `<span class="month-conflict-pill" title="${monthConflictsCount} conflict(s) in this month">🚨 ${monthConflictsCount} Conflict${monthConflictsCount > 1 ? 's' : ''}</span>`
+        : '';
 
       // Header
       const header = document.createElement('div');
@@ -302,6 +342,7 @@
         <div class="month-card-title">
           <span>${monthName}</span>
           <span class="month-card-count">${monthEvents.length}</span>
+          ${conflictHeaderPill}
         </div>
         <button class="btn btn-secondary btn-quick-add" data-month="${monthIdx}" style="padding: 0.2rem 0.6rem; font-size: 0.78rem;">
           + Add
@@ -336,8 +377,8 @@
     item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''} ${isHoliday ? 'is-holiday' : ''}`;
     item.dataset.id = ev.id;
 
-    // Format Date Range badge
-    const dateBadgeText = formatDateRangeShort(ev.startDate, ev.endDate);
+    // Format Date Range badge WITH Day of the Week! (e.g. "Tue • 26 Jan 2027" or "Mon–Wed • 09–11 Feb 2026")
+    const dateBadgeText = ConflictDetector.formatDateRangeWithDays(ev.startDate, ev.endDate);
 
     // Format Time badge
     let timeHtml = '';
@@ -351,9 +392,29 @@
 
     // Conflict pill
     let conflictHtml = '';
+    let persistentConflictHtml = '';
+
     if (hasConflict) {
-      const conflicts = state.conflictsMap.get(ev.id);
-      conflictHtml = `<span class="conflict-warning-tag" title="${escapeHtml(conflicts[0].message)}">⚠️ Conflict</span>`;
+      const conflicts = state.conflictsMap.get(ev.id) || [];
+      conflictHtml = `<span class="conflict-warning-tag" style="background-color: #fee2e2; color: #dc2626;" title="${escapeHtml(conflicts[0].message)}">🚨 CONFLICT</span>`;
+
+      // Persistent RED warning that is ALWAYS visible right on the card after entry!
+      const clashItems = conflicts.map(c => `
+        <div style="margin-top: 0.2rem;">
+          • <strong>Overlaps with:</strong> ${escapeHtml(c.peer.title)} (${ConflictDetector.formatDateRangeWithDays(c.peer.startDate, c.peer.endDate)})${!c.peer.isAllDay && c.peer.startTime ? ' @ ' + ConflictDetector.formatMinutes(timeToMinutes(c.peer.startTime)) : ''}
+          <div style="font-size: 0.72rem; color: #b91c1c; margin-left: 0.7rem;">↳ ${escapeHtml(c.message)}</div>
+        </div>
+      `).join('');
+
+      persistentConflictHtml = `
+        <div class="persistent-conflict-badge">
+          <span style="font-size: 1rem; line-height: 1;">🚨</span>
+          <div style="flex-grow: 1;">
+            <div style="color: #991b1b; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.02em;">ACTIVE SCHEDULE CONFLICT:</div>
+            ${clashItems}
+          </div>
+        </div>
+      `;
     }
 
     // Status symbol
@@ -375,6 +436,7 @@
         <div class="event-title-text">${titlePrefix}${escapeHtml(ev.title)}</div>
         ${ev.notes ? `<div class="event-notes-subtext">${escapeHtml(ev.notes)}</div>` : ''}
         ${ev.location ? `<div class="event-notes-subtext" style="color: var(--text-light);">📍 ${escapeHtml(ev.location)}</div>` : ''}
+        ${persistentConflictHtml}
       </div>
       <div class="event-side-badges">
         <span class="category-pill ${catClass}">${escapeHtml(ev.category || 'General')}</span>
@@ -629,8 +691,21 @@
 
   /**
    * Run real-time conflict checking while user is typing in modal
+   * Updates live Day Names and displays prominent RED warning
    */
   function checkModalConflictsLive() {
+    // Update live Day of Week indicator under the date fields
+    if (el.eventStartDayName) {
+      const sDay = ConflictDetector.getDayOfWeek(el.eventStartDate.value, false);
+      el.eventStartDayName.textContent = sDay ? `🗓️ ${sDay}` : '';
+    }
+
+    if (el.eventEndDayName) {
+      const eDateVal = el.eventEndDate.value || el.eventStartDate.value;
+      const eDay = ConflictDetector.getDayOfWeek(eDateVal, false);
+      el.eventEndDayName.textContent = eDay ? `🗓️ ${eDay}` : '';
+    }
+
     const candidate = {
       id: state.editingEventId,
       title: el.eventTitle.value.trim() || 'This Event',
@@ -651,8 +726,9 @@
 
     if (conflicts.length > 0) {
       el.modalConflictList.innerHTML = conflicts.map(c => `
-        <li style="margin-bottom: 0.35rem;">
-          <strong>${escapeHtml(c.peer.title)}</strong> (${formatDateRangeShort(c.peer.startDate, c.peer.endDate)}): ${escapeHtml(c.message)}
+        <li style="margin-bottom: 0.45rem; color: #991b1b; font-size: 0.86rem; line-height: 1.4;">
+          🚨 <strong>CLASH DETECTED:</strong> Overlaps with <strong>"${escapeHtml(c.peer.title)}"</strong> on ${ConflictDetector.formatDateRangeWithDays(c.peer.startDate, c.peer.endDate)}${!c.peer.isAllDay && c.peer.startTime ? ' at ' + ConflictDetector.formatMinutes(timeToMinutes(c.peer.startTime)) : ''}
+          <div style="font-size: 0.76rem; color: #b91c1c; margin-left: 1.25rem;">↳ ${escapeHtml(c.message)}</div>
         </li>
       `).join('');
       el.modalConflictBanner.style.display = 'flex';
@@ -933,14 +1009,48 @@
       checkModalConflictsLive();
     });
 
-    // Live conflict listeners on inputs
-    [el.eventStartDate, el.eventEndDate, el.eventStartTime, el.eventEndTime, el.eventStatus].forEach(input => {
-      input.addEventListener('change', () => {
-        // Automatically set endDate to startDate if endDate < startDate
-        if (input === el.eventStartDate && el.eventEndDate.value < el.eventStartDate.value) {
-          el.eventEndDate.value = el.eventStartDate.value;
+    // Layout Switcher (See all 12 months at once vs 2-col notebook)
+    if (el.btnLayout4Col) {
+      el.btnLayout4Col.addEventListener('click', () => {
+        state.diaryLayout = '4col';
+        localStorage.setItem('planner_diary_layout', '4col');
+        renderDiaryView();
+      });
+    }
+    if (el.btnLayout2Col) {
+      el.btnLayout2Col.addEventListener('click', () => {
+        state.diaryLayout = '2col';
+        localStorage.setItem('planner_diary_layout', '2col');
+        renderDiaryView();
+      });
+    }
+
+    // Month Quick-Jump Strip Click (Smooth jump to any of the 12 months)
+    if (el.monthJumpStrip) {
+      el.monthJumpStrip.addEventListener('click', (e) => {
+        const btn = e.target.closest('.jump-month-btn');
+        if (btn && btn.dataset.month !== undefined) {
+          const mIdx = parseInt(btn.dataset.month, 10);
+          const targetCard = document.getElementById(`month-card-${mIdx}`);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetCard.style.outline = '3px solid var(--primary)';
+            setTimeout(() => { targetCard.style.outline = ''; }, 1200);
+          }
         }
-        checkModalConflictsLive();
+      });
+    }
+
+    // Live conflict listeners on inputs (both change and input for instant reactivity)
+    [el.eventStartDate, el.eventEndDate, el.eventStartTime, el.eventEndTime, el.eventStatus].forEach(input => {
+      ['change', 'input'].forEach(evt => {
+        input.addEventListener(evt, () => {
+          // Automatically set endDate to startDate if endDate < startDate
+          if (input === el.eventStartDate && el.eventEndDate.value < el.eventStartDate.value) {
+            el.eventEndDate.value = el.eventStartDate.value;
+          }
+          checkModalConflictsLive();
+        });
       });
     });
 

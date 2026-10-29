@@ -36,13 +36,64 @@ const ConflictDetector = (() => {
     return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
   }
 
+  const DAY_NAMES_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
   /**
-   * Format Date to readable string (e.g. "14 Aug 2026")
+   * Get Day of Week from YYYY-MM-DD
    */
-  function formatDateReadable(dStr) {
+  function getDayOfWeek(dStr, short = false) {
     if (!dStr) return '';
     const d = parseDate(dStr);
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (!d || isNaN(d.getTime())) return '';
+    const dayIdx = d.getDay();
+    return short ? DAY_NAMES_SHORT[dayIdx] : DAY_NAMES_FULL[dayIdx];
+  }
+
+  /**
+   * Format Date with Day name (e.g. "Tue, 26 Jan 2027")
+   */
+  function formatDateReadable(dStr, includeDay = true) {
+    if (!dStr) return '';
+    const d = parseDate(dStr);
+    if (!d || isNaN(d.getTime())) return '';
+    const dateFormatted = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (!includeDay) return dateFormatted;
+    const dayName = DAY_NAMES_SHORT[d.getDay()];
+    return `${dayName}, ${dateFormatted}`;
+  }
+
+  /**
+   * Format date range with Day of the Week
+   * e.g. "Tue • 26 Jan 2027" or "Mon–Wed • 09–11 Feb 2026" or "Mon, 29 Jun – Wed, 01 Jul 2026"
+   */
+  function formatDateRangeWithDays(sStr, eStr) {
+    if (!sStr) return '';
+    const sDate = parseDate(sStr);
+    if (!sDate || isNaN(sDate.getTime())) return sStr;
+    const sDayName = DAY_NAMES_SHORT[sDate.getDay()];
+    const sDayNum = String(sDate.getDate()).padStart(2, '0');
+    const sMonth = sDate.toLocaleDateString('en-US', { month: 'short' });
+    const sYear = sDate.getFullYear();
+
+    if (!eStr || sStr === eStr) {
+      return `${sDayName} • ${sDayNum} ${sMonth} ${sYear}`;
+    }
+
+    const eDate = parseDate(eStr);
+    if (!eDate || isNaN(eDate.getTime())) return `${sDayName} • ${sDayNum} ${sMonth} ${sYear}`;
+    const eDayName = DAY_NAMES_SHORT[eDate.getDay()];
+    const eDayNum = String(eDate.getDate()).padStart(2, '0');
+    const eMonth = eDate.toLocaleDateString('en-US', { month: 'short' });
+    const eYear = eDate.getFullYear();
+
+    if (sYear === eYear && sMonth === eMonth) {
+      return `${sDayName}–${eDayName} • ${sDayNum}–${eDayNum} ${sMonth} ${sYear}`;
+    } else if (sYear === eYear) {
+      return `${sDayName}, ${sDayNum} ${sMonth} – ${eDayName}, ${eDayNum} ${eMonth} ${sYear}`;
+    } else {
+      return `${sDayName}, ${sDayNum} ${sMonth} ${sYear} – ${eDayName}, ${eDayNum} ${eMonth} ${eYear}`;
+    }
   }
 
   /**
@@ -214,7 +265,10 @@ const ConflictDetector = (() => {
     findConflictsForCandidate,
     findAllConflicts,
     formatDateReadable,
-    formatMinutes
+    formatDateRangeWithDays,
+    getDayOfWeek,
+    formatMinutes,
+    parseDate
   };
 })();
 
