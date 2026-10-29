@@ -69,6 +69,7 @@
     filterCategorySelect: document.getElementById('filter-category-select'),
     filterStatusSelect: document.getElementById('filter-status-select'),
     filteredCountText: document.getElementById('filtered-count-text'),
+    btnToolbarAdd2027Holidays: document.getElementById('btn-toolbar-add-2027-holidays'),
 
     // Views
     viewDiary: document.getElementById('view-diary'),
@@ -122,6 +123,7 @@
     btnExportPlain: document.getElementById('btn-export-plain'),
     btnImportBackupSettings: document.getElementById('btn-import-backup-settings'),
     btnLoadSampleDiary: document.getElementById('btn-load-sample-diary'),
+    btnLoad2027Holidays: document.getElementById('btn-load-2027-holidays'),
 
     // Toast
     toast: document.getElementById('toast')
@@ -329,8 +331,9 @@
     const item = document.createElement('div');
     const hasConflict = state.conflictsMap.has(ev.id);
     const isCancelled = ev.status === 'cancelled';
+    const isHoliday = ev.category === 'Holiday';
 
-    item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''}`;
+    item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''} ${isHoliday ? 'is-holiday' : ''}`;
     item.dataset.id = ev.id;
 
     // Format Date Range badge
@@ -359,6 +362,8 @@
     else if (ev.status === 'tentative') statusSymbol = '<span style="color: var(--warning); font-weight: bold;">?</span>';
     else if (ev.status === 'cancelled') statusSymbol = '<span style="color: var(--danger); font-weight: bold;">✕</span>';
 
+    const titlePrefix = isHoliday ? '🏛️ ' : '';
+
     item.innerHTML = `
       <div class="event-main-col">
         <div class="event-date-row">
@@ -367,7 +372,7 @@
           ${conflictHtml}
           ${statusSymbol}
         </div>
-        <div class="event-title-text">${escapeHtml(ev.title)}</div>
+        <div class="event-title-text">${titlePrefix}${escapeHtml(ev.title)}</div>
         ${ev.notes ? `<div class="event-notes-subtext">${escapeHtml(ev.notes)}</div>` : ''}
         ${ev.location ? `<div class="event-notes-subtext" style="color: var(--text-light);">📍 ${escapeHtml(ev.location)}</div>` : ''}
       </div>
@@ -410,6 +415,7 @@
       case 'Conference': return 'cat-conference';
       case 'Homeopathy': return 'cat-homeopathy';
       case 'Travel': return 'cat-travel';
+      case 'Holiday': return 'cat-holiday';
       default: return 'cat-other';
     }
   }
@@ -1057,6 +1063,48 @@
         showToast('Notebook diary entries loaded!');
       }
     });
+
+    // Import 2027 Central Government Holidays
+    async function import2027Holidays() {
+      const holidays = window.CENTRAL_GOVT_HOLIDAYS_2027 || [];
+      if (!holidays || holidays.length === 0) {
+        showToast('No 2027 holidays data found.');
+        return;
+      }
+
+      let addedCount = 0;
+      holidays.forEach(h => {
+        const exists = state.events.some(e => e.title === h.title && e.startDate === h.startDate);
+        if (!exists) {
+          state.events.push(JSON.parse(JSON.stringify(h)));
+          addedCount++;
+        }
+      });
+
+      // Jump view to 2027 to see the holidays immediately
+      state.currentYear = 2027;
+      el.currentYearDisplay.textContent = 2027;
+
+      await persistChanges();
+      refreshAllData();
+
+      if (el.modalSettings.classList.contains('active')) {
+        el.modalSettings.classList.remove('active');
+      }
+
+      if (addedCount > 0) {
+        showToast(`🏛️ Added ${addedCount} Central Govt Holidays for 2027!`);
+      } else {
+        showToast('🏛️ All 17 Central Govt Holidays for 2027 are already present!');
+      }
+    }
+
+    if (el.btnToolbarAdd2027Holidays) {
+      el.btnToolbarAdd2027Holidays.addEventListener('click', import2027Holidays);
+    }
+    if (el.btnLoad2027Holidays) {
+      el.btnLoad2027Holidays.addEventListener('click', import2027Holidays);
+    }
   }
 
   function escapeHtml(str) {

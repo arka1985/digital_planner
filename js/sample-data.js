@@ -555,8 +555,185 @@ const SAMPLE_PLANNER_DATA = {
       location: "AIIPH",
       status: "confirmed",
       notes: "IMPORTANT: Note conflict with Jim Corbett Travel (Dec 24-31)!"
+    },
+    // =========================================================================
+    // 2027 CENTRAL GOVERNMENT GAZETTED HOLIDAYS (DELHI ADMINISTRATIVE OFFICES)
+    // =========================================================================
+    {
+      id: "hol-2027-01",
+      title: "Republic Day",
+      category: "Holiday",
+      startDate: "2027-01-26",
+      endDate: "2027-01-26",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Tuesday, Magha 06)"
+    },
+    {
+      id: "hol-2027-02",
+      title: "Id-ul-Fitr",
+      category: "Holiday",
+      startDate: "2027-03-10",
+      endDate: "2027-03-10",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Wednesday, Phalguna 19)"
+    },
+    {
+      id: "hol-2027-03",
+      title: "Holi",
+      category: "Holiday",
+      startDate: "2027-03-23",
+      endDate: "2027-03-23",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Tuesday, Chaitra 02)"
+    },
+    {
+      id: "hol-2027-04",
+      title: "Good Friday",
+      category: "Holiday",
+      startDate: "2027-03-26",
+      endDate: "2027-03-26",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Friday, Chaitra 05)"
+    },
+    {
+      id: "hol-2027-05",
+      title: "Ram Navami",
+      category: "Holiday",
+      startDate: "2027-04-15",
+      endDate: "2027-04-15",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Thursday, Chaitra 25)"
+    },
+    {
+      id: "hol-2027-06",
+      title: "Mahavir Jayanti",
+      category: "Holiday",
+      startDate: "2027-04-19",
+      endDate: "2027-04-19",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Monday, Chaitra 29)"
+    },
+    {
+      id: "hol-2027-07",
+      title: "Id-ul-Zuha (Bakrid)",
+      category: "Holiday",
+      startDate: "2027-05-17",
+      endDate: "2027-05-17",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Monday, Vaisakha 27)"
+    },
+    {
+      id: "hol-2027-08",
+      title: "Budha Purnima",
+      category: "Holiday",
+      startDate: "2027-05-20",
+      endDate: "2027-05-20",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Thursday, Vaisakha 30)"
+    },
+    {
+      id: "hol-2027-09",
+      title: "Muharram",
+      category: "Holiday",
+      startDate: "2027-06-16",
+      endDate: "2027-06-16",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Wednesday, Jyaistha 26)"
+    },
+    {
+      id: "hol-2027-10",
+      title: "Independence Day",
+      category: "Holiday",
+      startDate: "2027-08-15",
+      endDate: "2027-08-15",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "National Holiday (Sunday, Sravana 24)"
+    },
+    {
+      id: "hol-2027-11",
+      title: "Milad-un-Nabi (Prophet Mohammad's Birthday)",
+      category: "Holiday",
+      startDate: "2027-08-15",
+      endDate: "2027-08-15",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Sunday, Sravana 24)"
+    },
+    {
+      id: "hol-2027-12",
+      title: "Janmashtami (Vaishnav)",
+      category: "Holiday",
+      startDate: "2027-08-25",
+      endDate: "2027-08-25",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Wednesday, Bhadra 03)"
+    },
+    {
+      id: "hol-2027-13",
+      title: "Mahatma Gandhi's Birthday",
+      category: "Holiday",
+      startDate: "2027-10-02",
+      endDate: "2027-10-02",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "National Holiday (Saturday, Asvina 10)"
+    },
+    {
+      id: "hol-2027-14",
+      title: "Dussehra (Vijaya Dashmi)",
+      category: "Holiday",
+      startDate: "2027-10-09",
+      endDate: "2027-10-09",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Saturday, Asvina 17)"
+    },
+    {
+      id: "hol-2027-15",
+      title: "Diwali (Deepavali)",
+      category: "Holiday",
+      startDate: "2027-10-29",
+      endDate: "2027-10-29",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Friday, Kartika 07)"
+    },
+    {
+      id: "hol-2027-16",
+      title: "Guru Nanak's Birthday",
+      category: "Holiday",
+      startDate: "2027-11-14",
+      endDate: "2027-11-14",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Sunday, Kartika 23)"
+    },
+    {
+      id: "hol-2027-17",
+      title: "Christmas Day",
+      category: "Holiday",
+      startDate: "2027-12-25",
+      endDate: "2027-12-25",
+      isAllDay: true,
+      status: "confirmed",
+      notes: "Central Govt Gazetted Holiday (Saturday, Pausha 04)"
     }
   ]
 };
 
+// Standalone 2027 Holidays List for 1-Click Import
+const CENTRAL_GOVT_HOLIDAYS_2027 = SAMPLE_PLANNER_DATA.events.filter(e => e.id.startsWith("hol-2027"));
+
 window.SAMPLE_PLANNER_DATA = SAMPLE_PLANNER_DATA;
+window.CENTRAL_GOVT_HOLIDAYS_2027 = CENTRAL_GOVT_HOLIDAYS_2027;

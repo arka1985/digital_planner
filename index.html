@@ -193,6 +193,7 @@
           <option value="Conference">Conference / FDP</option>
           <option value="Homeopathy">Homeopathy</option>
           <option value="Travel">Travel / Personal</option>
+          <option value="Holiday">Holiday / Gazetted</option>
           <option value="Other">Other</option>
         </select>
 
@@ -205,8 +206,11 @@
         </select>
       </div>
 
-      <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
-        <span id="filtered-count-text">Showing all entries</span>
+      <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+        <button id="btn-toolbar-add-2027-holidays" class="btn btn-secondary" style="font-size: 0.82rem;" title="Import all 17 Central Government Gazetted Holidays for 2027">
+          🏛️ 2027 Holidays
+        </button>
+        <span id="filtered-count-text" style="font-size: 0.85rem; color: var(--text-muted);">Showing all entries</span>
       </div>
     </div>
 
@@ -288,6 +292,7 @@
                 <option value="Conference">Conference / FDP</option>
                 <option value="Homeopathy">Homeopathy</option>
                 <option value="Travel">Travel / Personal</option>
+                <option value="Holiday">Holiday / Gazetted</option>
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -476,12 +481,17 @@
 
         <hr style="border: 0; border-top: 1px solid var(--border-color);">
 
-        <!-- Reload Notebook Sample Data -->
+        <!-- Reload Notebook Sample Data & 2027 Holidays -->
         <div>
-          <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem;">Sample Diary</h4>
-          <button type="button" id="btn-load-sample-diary" class="btn btn-secondary" style="font-size: 0.85rem;">
-            🔄 Reload 2026 Diary from Notebook Photo
-          </button>
+          <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem;">Sample Data & Holidays</h4>
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <button type="button" id="btn-load-sample-diary" class="btn btn-secondary" style="font-size: 0.85rem;">
+              🔄 Reload 2026 Diary from Photo
+            </button>
+            <button type="button" id="btn-load-2027-holidays" class="btn btn-secondary" style="font-size: 0.85rem;">
+              🏛️ Add 2027 Central Govt Holidays
+            </button>
+          </div>
         </div>
       </div>
 

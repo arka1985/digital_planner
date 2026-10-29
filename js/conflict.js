@@ -63,6 +63,11 @@ const ConflictDetector = (() => {
       return null;
     }
 
+    // Two holidays co-existing on the same day (e.g. Independence Day & Milad-un-Nabi on Aug 15) do NOT conflict with each other!
+    if (eventA.category === 'Holiday' && eventB.category === 'Holiday') {
+      return null;
+    }
+
     const startA = eventA.startDate;
     const endA = eventA.endDate || eventA.startDate;
     const startB = eventB.startDate;
@@ -75,6 +80,21 @@ const ConflictDetector = (() => {
     // Determine overlapping date range
     const overlapStart = startA > startB ? startA : startB;
     const overlapEnd = endA < endB ? endA : endB;
+
+    // Check if one of them is a Holiday and the other is a scheduled duty/travel
+    const isHolidayInvolved = eventA.category === 'Holiday' || eventB.category === 'Holiday';
+    const holidayItem = eventA.category === 'Holiday' ? eventA : (eventB.category === 'Holiday' ? eventB : null);
+
+    if (isHolidayInvolved && holidayItem) {
+      return {
+        type: 'holiday_overlap',
+        severity: 'medium',
+        overlapStart,
+        overlapEnd,
+        message: `Notice: Scheduled on Central Govt Holiday (${holidayItem.title}) on ${formatDateReadable(overlapStart)}`,
+        peer: eventB
+      };
+    }
 
     // Both are all-day events
     if (eventA.isAllDay && eventB.isAllDay) {
