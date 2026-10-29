@@ -32,8 +32,10 @@
 
   // DOM Elements
   const el = {
-    // Lock Screen
+    // Lock / Login Screen
     lockScreen: document.getElementById('lock-screen'),
+    tabLogin: document.getElementById('tab-login'),
+    tabSetup: document.getElementById('tab-setup'),
     unlockSection: document.getElementById('lock-unlock-section'),
     setupSection: document.getElementById('lock-setup-section'),
     formUnlock: document.getElementById('form-unlock'),
@@ -42,11 +44,10 @@
     formSetup: document.getElementById('form-setup'),
     setupPassword: document.getElementById('setup-password'),
     setupPasswordConfirm: document.getElementById('setup-password-confirm'),
-    setupStarterChoice: document.getElementById('setup-starter-choice'),
+    setupIncludeSample: document.getElementById('setup-include-sample'),
     setupError: document.getElementById('setup-error'),
     btnShowImportBackup: document.getElementById('btn-show-import-backup'),
     btnSetupImportLink: document.getElementById('btn-setup-import-link'),
-    btnResetVaultLink: document.getElementById('btn-reset-vault-link'),
     importFileInput: document.getElementById('import-file-input'),
 
     // App Header
@@ -170,6 +171,12 @@
     el.lockScreen.style.display = 'flex';
     el.unlockSection.style.display = 'block';
     el.setupSection.style.display = 'none';
+
+    if (el.tabLogin && el.tabSetup) {
+      el.tabLogin.classList.add('active');
+      el.tabSetup.classList.remove('active');
+    }
+
     el.unlockPassword.value = '';
     el.unlockError.style.display = 'none';
     setTimeout(() => el.unlockPassword.focus(), 100);
@@ -179,6 +186,12 @@
     el.lockScreen.style.display = 'flex';
     el.unlockSection.style.display = 'none';
     el.setupSection.style.display = 'block';
+
+    if (el.tabLogin && el.tabSetup) {
+      el.tabSetup.classList.add('active');
+      el.tabLogin.classList.remove('active');
+    }
+
     el.setupPassword.value = '';
     el.setupPasswordConfirm.value = '';
     el.setupError.style.display = 'none';
@@ -813,7 +826,32 @@
   // EVENT LISTENERS SETUP
   // ---------------------------------------------------------
   function setupEventListeners() {
-    // Unlock Form Submit
+    // Mode Switcher Tabs (Log In vs Set New Password / Reset)
+    if (el.tabLogin) {
+      el.tabLogin.addEventListener('click', () => showUnlockScreen());
+    }
+    if (el.tabSetup) {
+      el.tabSetup.addEventListener('click', () => showSetupScreen());
+    }
+
+    // Password Show/Hide Toggles (Eliminates typos!)
+    function bindPasswordEye(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (!btn || !input) return;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isPwd = input.type === 'password';
+        input.type = isPwd ? 'text' : 'password';
+        btn.textContent = isPwd ? '🙈' : '👁️';
+      });
+    }
+
+    bindPasswordEye('btn-toggle-unlock-pwd', 'unlock-password');
+    bindPasswordEye('btn-toggle-setup-pwd', 'setup-password');
+    bindPasswordEye('btn-toggle-confirm-pwd', 'setup-password-confirm');
+
+    // Unlock Form Submit (Log In)
     el.formUnlock.addEventListener('submit', async (e) => {
       e.preventDefault();
       const pwd = el.unlockPassword.value;
@@ -823,13 +861,13 @@
         const data = await PlannerStorage.unlockVault(pwd);
         unlockSuccess(data);
       } catch (err) {
-        el.unlockError.textContent = 'Decryption failed: Incorrect master password.';
+        el.unlockError.textContent = '✕ Incorrect password. Please check for typos (click 👁️ to verify), or switch to "Set Passcode / Reset" above.';
         el.unlockError.style.display = 'block';
         el.unlockPassword.select();
       }
     });
 
-    // Setup Form Submit
+    // Setup / Reset Form Submit
     el.formSetup.addEventListener('submit', async (e) => {
       e.preventDefault();
       const p1 = el.setupPassword.value;
@@ -837,7 +875,7 @@
       el.setupError.style.display = 'none';
 
       if (p1 !== p2) {
-        el.setupError.textContent = 'Passwords do not match.';
+        el.setupError.textContent = 'Passwords do not match. Please verify both fields.';
         el.setupError.style.display = 'block';
         return;
       }
@@ -856,26 +894,17 @@
         events: []
       };
 
-      if (el.setupStarterChoice.value === 'diary-sample') {
+      if (!el.setupIncludeSample || el.setupIncludeSample.checked) {
         initialData = JSON.parse(JSON.stringify(window.SAMPLE_PLANNER_DATA));
       }
 
       try {
         const data = await PlannerStorage.initVault(p1, initialData);
         unlockSuccess(data);
-        showToast('Vault created and encrypted successfully!');
+        showToast('✓ Password configured & Planner ready!');
       } catch (err) {
         el.setupError.textContent = err.message;
         el.setupError.style.display = 'block';
-      }
-    });
-
-    // Reset Vault
-    el.btnResetVaultLink.addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset your vault? This will erase local encrypted data. (Make sure you have a backup!)')) {
-        localStorage.clear();
-        showSetupScreen();
-        showToast('Vault reset. You can now create a new master password.');
       }
     });
 
