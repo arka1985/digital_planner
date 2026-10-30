@@ -11,8 +11,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0284c7">
 
-  <!-- Main Stylesheet (Cache-Busted v6.0) -->
-  <link rel="stylesheet" href="css/styles.css?v=6.0">
+  <!-- Main Stylesheet (Cache-Busted v7.0) -->
+  <link rel="stylesheet" href="css/styles.css?v=8.0">
 
   <!-- Immediate Display Mode Initializer (Zero layout flicker) -->
   <script>
@@ -21,6 +21,9 @@
         var savedMode = localStorage.getItem('planner_device_mode');
         var isMobile = savedMode ? (savedMode === 'mobile') : (window.innerWidth <= 820 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
         document.documentElement.classList.add(isMobile ? 'mode-mobile' : 'mode-desktop');
+        if (document.body) {
+          document.body.classList.add(isMobile ? 'device-mobile' : 'device-desktop');
+        }
       } catch (e) {}
     })();
   </script>
@@ -44,11 +47,13 @@
         <div class="device-mode-toggle" id="lock-device-toggle" role="group" aria-label="Display Mode">
           <button type="button" class="device-toggle-btn btn-device-desktop active" data-mode="desktop" title="Optimized for Computer / Desktop">
             <span class="device-btn-icon">💻</span>
-            <span class="device-btn-text">Computer</span>
+            <span class="device-btn-text text-full">Computer</span>
+            <span class="device-btn-text text-short">PC</span>
           </button>
           <button type="button" class="device-toggle-btn btn-device-mobile" data-mode="mobile" title="Optimized for Smart Phone / Mobile">
             <span class="device-btn-icon">📱</span>
-            <span class="device-btn-text">Smart Phone</span>
+            <span class="device-btn-text text-full">Smart Phone</span>
+            <span class="device-btn-text text-short">Phone</span>
           </button>
         </div>
       </div>
@@ -160,11 +165,13 @@
           <div class="device-mode-toggle" id="header-device-toggle" role="group" aria-label="Display Mode">
             <button type="button" class="device-toggle-btn btn-device-desktop active" data-mode="desktop" title="Display optimized for Computer / Desktop">
               <span class="device-btn-icon">💻</span>
-              <span class="device-btn-text">Computer</span>
+              <span class="device-btn-text text-full">Computer</span>
+              <span class="device-btn-text text-short">PC</span>
             </button>
             <button type="button" class="device-toggle-btn btn-device-mobile" data-mode="mobile" title="Display optimized for Smart Phone / Mobile">
               <span class="device-btn-icon">📱</span>
-              <span class="device-btn-text">Smart Phone</span>
+              <span class="device-btn-text text-full">Smart Phone</span>
+              <span class="device-btn-text text-short">Phone</span>
             </button>
           </div>
         </div>
@@ -187,40 +194,46 @@
 
         <!-- Controls: YEAR, CONFLICTS, ADD EVENT, SETTING, PRINT, LOCK (Always Visible on both Computer and Phone!) -->
         <div class="header-controls">
-          <!-- 1. Year Navigator -->
-          <div class="year-selector" title="Switch Year">
-            <button id="btn-year-prev" class="year-nav-btn" title="Previous Year">‹</button>
-            <div id="current-year-display" class="year-display">2026</div>
-            <button id="btn-year-next" class="year-nav-btn" title="Next Year">›</button>
+          <div class="header-controls-primary">
+            <!-- 1. Year Navigator -->
+            <div class="year-selector" title="Switch Year">
+              <button id="btn-year-prev" class="year-nav-btn" title="Previous Year">‹</button>
+              <div id="current-year-display" class="year-display">2026</div>
+              <button id="btn-year-next" class="year-nav-btn" title="Next Year">›</button>
+            </div>
+
+            <!-- 2. Conflict Badge Button -->
+            <button id="btn-conflict-badge" class="conflict-badge-btn no-conflicts" title="View Schedule Conflicts">
+              <span id="conflict-badge-icon">✓</span>
+              <span id="conflict-badge-text">0 Conflicts</span>
+            </button>
+
+            <!-- 3. New Event Button -->
+            <button id="btn-add-event-top" class="btn btn-primary btn-add-event-header" title="Add new schedule entry">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Add Event</span>
+            </button>
           </div>
 
-          <!-- 2. Conflict Badge Button -->
-          <button id="btn-conflict-badge" class="conflict-badge-btn no-conflicts" title="View Schedule Conflicts">
-            <span id="conflict-badge-icon">✓</span>
-            <span id="conflict-badge-text">0 Conflicts</span>
-          </button>
+          <div class="header-controls-secondary">
+            <!-- 4. Settings Button -->
+            <button id="btn-open-settings" class="btn btn-secondary header-tool-btn" title="Security & Settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <span class="btn-tool-label">Settings</span>
+            </button>
 
-          <!-- 3. New Event Button -->
-          <button id="btn-add-event-top" class="btn btn-primary" title="Add new schedule entry">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Add Event</span>
-          </button>
+            <!-- 5. Print Button -->
+            <button id="btn-print" class="btn btn-secondary header-tool-btn" title="Print 12-Month Diary / Save to PDF">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              <span class="btn-tool-label">Print</span>
+            </button>
 
-          <!-- 4. Settings Button -->
-          <button id="btn-open-settings" class="btn-icon" title="Security & Settings">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          </button>
-
-          <!-- 5. Print Button -->
-          <button id="btn-print" class="btn-icon" title="Print 12-Month Diary / Save to PDF">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-          </button>
-
-          <!-- 6. Lock Vault Button -->
-          <button id="btn-lock-now" class="btn btn-secondary" title="Lock planner and secure memory">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <span>Lock</span>
-          </button>
+            <!-- 6. Lock Vault Button -->
+            <button id="btn-lock-now" class="btn btn-secondary header-tool-btn" title="Lock planner and secure memory">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span class="btn-tool-label">Lock</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -656,16 +669,16 @@
     Notification
   </div>
 
-  <!-- SCRIPTS (Cache-Busted v6.0) -->
-  <script src="js/crypto.js?v=6.0"></script>
-  <script src="js/conflict.js?v=6.0"></script>
-  <script src="js/sample-data.js?v=6.0"></script>
-  <script src="js/storage.js?v=6.0"></script>
-  <script src="js/app.js?v=6.0"></script>
+  <!-- SCRIPTS (Cache-Busted v7.0) -->
+  <script src="js/crypto.js?v=8.0"></script>
+  <script src="js/conflict.js?v=8.0"></script>
+  <script src="js/sample-data.js?v=8.0"></script>
+  <script src="js/storage.js?v=8.0"></script>
+  <script src="js/app.js?v=8.0"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=6.0').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=8.0').then(reg => {
           reg.update();
         }).catch(() => {});
       });

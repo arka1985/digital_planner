@@ -1,5 +1,5 @@
 // Service Worker for 100% Offline Capability with Network-First Strategy
-const CACHE_NAME = 'monthly-planner-v6';
+const CACHE_NAME = 'monthly-planner-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

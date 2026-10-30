@@ -127,7 +127,6 @@
     eventTaskName: document.getElementById('event-task-name'),
     categoryChipsGrid: document.getElementById('category-chips-grid'),
     selectedCategoriesCount: document.getElementById('selected-categories-count'),
-    eventCategory: document.getElementById('event-category'),
     eventStatus: document.getElementById('event-status'),
     eventStartDate: document.getElementById('event-start-date'),
     eventEndDate: document.getElementById('event-end-date'),
@@ -164,12 +163,6 @@
     btnLoadSampleDiary: document.getElementById('btn-load-sample-diary'),
     btnLoad2027Holidays: document.getElementById('btn-load-2027-holidays'),
 
-    // Device Display Mode Toggles
-    btnFloatingDeviceToggle: document.getElementById('btn-floating-device-toggle'),
-    floatingToggleIcon: document.getElementById('floating-toggle-icon'),
-    floatingToggleLabel: document.getElementById('floating-toggle-label'),
-    btnMobileQuickPc: document.getElementById('btn-mobile-quick-pc'),
-
     // Mobile Search & Filter Drawer
     btnToggleFilters: document.getElementById('btn-toggle-filters'),
     activeFilterBadge: document.getElementById('active-filter-badge'),
@@ -184,25 +177,6 @@
     mobActiveMonthCount: document.getElementById('mob-active-month-count'),
     btnMobModeFocus: document.getElementById('btn-mob-mode-focus'),
     btnMobModeAll: document.getElementById('btn-mob-mode-all'),
-
-    // Mobile Bottom Navigation Bar
-    mobileBottomNav: document.getElementById('mobile-bottom-nav'),
-    mobNavDiary: document.getElementById('mob-nav-diary'),
-    mobNavCalendar: document.getElementById('mob-nav-calendar'),
-    mobNavAgenda: document.getElementById('mob-nav-agenda'),
-    mobNavAdd: document.getElementById('mob-nav-add'),
-    mobNavMenu: document.getElementById('mob-nav-menu'),
-
-    // Mobile Menu Action Sheet Modal
-    modalMobileMenu: document.getElementById('modal-mobile-menu'),
-    btnCloseMobMenu: document.getElementById('btn-close-mob-menu'),
-    mobMenuBtnSwitchPc: document.getElementById('mob-menu-btn-switch-pc'),
-    mobMenuBtnHolidays: document.getElementById('mob-menu-btn-holidays'),
-    mobMenuBtnConflicts: document.getElementById('mob-menu-btn-conflicts'),
-    mobMenuConflictText: document.getElementById('mob-menu-conflict-text'),
-    mobMenuBtnSettings: document.getElementById('mob-menu-btn-settings'),
-    mobMenuBtnPrint: document.getElementById('mob-menu-btn-print'),
-    mobMenuBtnLock: document.getElementById('mob-menu-btn-lock'),
 
     // Toast
     toast: document.getElementById('toast')
@@ -253,19 +227,10 @@
       }
     });
 
-    // Update Floating Switcher Pill
-    if (el.floatingToggleIcon && el.floatingToggleLabel) {
-      if (isMobile) {
-        el.floatingToggleIcon.textContent = '📱';
-        el.floatingToggleLabel.textContent = 'Smart Phone';
-        const actionSpan = el.btnFloatingDeviceToggle ? el.btnFloatingDeviceToggle.querySelector('.floating-toggle-action') : null;
-        if (actionSpan) actionSpan.textContent = 'Switch to Computer 💻';
-      } else {
-        el.floatingToggleIcon.textContent = '💻';
-        el.floatingToggleLabel.textContent = 'Computer';
-        const actionSpan = el.btnFloatingDeviceToggle ? el.btnFloatingDeviceToggle.querySelector('.floating-toggle-action') : null;
-        if (actionSpan) actionSpan.textContent = 'Switch to Phone 📱';
-      }
+
+
+    if (el.appContainer && el.appContainer.style.display !== 'none') {
+      renderCurrentView();
     }
 
     if (showNotification) {
@@ -373,16 +338,12 @@
       el.btnConflictBadge.className = 'conflict-badge-btn has-conflicts';
       el.conflictBadgeIcon.textContent = '⚠️';
       el.conflictBadgeText.textContent = `${distinctPairs} Conflict${distinctPairs > 1 ? 's' : ''}`;
-      if (el.mobMenuConflictText) {
-        el.mobMenuConflictText.textContent = `${distinctPairs} overlapping schedule conflict${distinctPairs > 1 ? 's' : ''} detected`;
-      }
+
     } else {
       el.btnConflictBadge.className = 'conflict-badge-btn no-conflicts';
       el.conflictBadgeIcon.textContent = '✓';
       el.conflictBadgeText.textContent = '0 Conflicts';
-      if (el.mobMenuConflictText) {
-        el.mobMenuConflictText.textContent = 'No overlapping duties (all clear)';
-      }
+
     }
   }
 
@@ -487,7 +448,7 @@
     const filtered = getFilteredEvents();
     updateFilteredCount(filtered.length, state.events.length);
 
-    const isMobileMode = state.deviceMode === 'mobile' || (window.innerWidth <= 768 && state.deviceMode !== 'desktop');
+    const isMobileMode = state.deviceMode === 'mobile' || (window.innerWidth <= 820 && state.deviceMode !== 'desktop');
     const isSingleMonthMobile = isMobileMode && state.mobileDiaryMode === 'single';
 
     // Update Mobile Month Navigation Bar
@@ -881,9 +842,7 @@
     el.navBtnAgenda.className = `pill-btn ${state.currentView === 'agenda' ? 'active' : ''}`;
 
     // Mobile bottom nav buttons
-    if (el.mobNavDiary) el.mobNavDiary.classList.toggle('active', state.currentView === 'diary');
-    if (el.mobNavCalendar) el.mobNavCalendar.classList.toggle('active', state.currentView === 'calendar');
-    if (el.mobNavAgenda) el.mobNavAgenda.classList.toggle('active', state.currentView === 'agenda');
+
 
     // Mobile Month Bar & Jump Strip only shown in Diary view
     if (el.mobileMonthBar) {
@@ -1156,11 +1115,7 @@
       });
     });
 
-    if (el.btnFloatingDeviceToggle) {
-      el.btnFloatingDeviceToggle.addEventListener('click', () => {
-        toggleDeviceMode();
-      });
-    }
+
 
     // Mode Switcher Tabs (Log In vs Set New Password / Reset)
     if (el.tabLogin) {
@@ -1407,11 +1362,7 @@
     }
 
     // Mobile Quick Switch to Computer View Button in Header
-    if (el.btnMobileQuickPc) {
-      el.btnMobileQuickPc.addEventListener('click', () => {
-        setDeviceMode('desktop', true);
-      });
-    }
+
 
     // Mobile Search & Filter Drawer Toggle & Clear
     if (el.btnToggleFilters && el.filterDropdownsContainer) {
@@ -1461,81 +1412,7 @@
       });
     }
 
-    // Mobile Bottom Navigation Bar Actions
-    if (el.mobNavDiary) {
-      el.mobNavDiary.addEventListener('click', () => {
-        state.currentView = 'diary';
-        renderCurrentView();
-      });
-    }
-    if (el.mobNavCalendar) {
-      el.mobNavCalendar.addEventListener('click', () => {
-        state.currentView = 'calendar';
-        renderCurrentView();
-      });
-    }
-    if (el.mobNavAgenda) {
-      el.mobNavAgenda.addEventListener('click', () => {
-        state.currentView = 'agenda';
-        renderCurrentView();
-      });
-    }
-    if (el.mobNavAdd) {
-      el.mobNavAdd.addEventListener('click', () => {
-        const mStr = String(state.selectedMonthIdx + 1).padStart(2, '0');
-        openNewEventModal(`${state.currentYear}-${mStr}-01`);
-      });
-    }
-    if (el.mobNavMenu) {
-      el.mobNavMenu.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.add('active');
-      });
-    }
 
-    // Mobile Quick Menu Action Sheet Modal
-    if (el.btnCloseMobMenu) {
-      el.btnCloseMobMenu.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-      });
-    }
-    if (el.mobMenuBtnSwitchPc) {
-      el.mobMenuBtnSwitchPc.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        setDeviceMode('desktop', true);
-      });
-    }
-    if (el.mobMenuBtnHolidays) {
-      el.mobMenuBtnHolidays.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        import2027Holidays();
-      });
-    }
-    if (el.mobMenuBtnConflicts) {
-      el.mobMenuBtnConflicts.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        openConflictCenterModal();
-      });
-    }
-    if (el.mobMenuBtnSettings) {
-      el.mobMenuBtnSettings.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        el.btnOpenSettings.click();
-      });
-    }
-    if (el.mobMenuBtnPrint) {
-      el.mobMenuBtnPrint.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        window.print();
-      });
-    }
-    if (el.mobMenuBtnLock) {
-      el.mobMenuBtnLock.addEventListener('click', () => {
-        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
-        PlannerStorage.lockVault();
-        showUnlockScreen();
-        showToast('🔒 Planner locked. Sensitive data cleared from memory.');
-      });
-    }
 
     // Month Quick-Jump Strip Click (Smooth jump or select month in carousel)
     if (el.monthJumpStrip) {
@@ -1544,7 +1421,7 @@
         if (btn && btn.dataset.month !== undefined) {
           const mIdx = parseInt(btn.dataset.month, 10);
           state.selectedMonthIdx = mIdx;
-          const isMobile = state.deviceMode === 'mobile' || (window.innerWidth <= 768 && state.deviceMode !== 'desktop');
+          const isMobile = state.deviceMode === 'mobile' || (window.innerWidth <= 820 && state.deviceMode !== 'desktop');
           if (isMobile && state.mobileDiaryMode === 'single') {
             renderDiaryView();
           } else {
