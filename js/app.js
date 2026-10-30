@@ -608,7 +608,8 @@
     const isCancelled = ev.status === 'cancelled';
     const isHoliday = (ev.category === 'Holiday' || (Array.isArray(ev.categories) && ev.categories.includes('Holiday')));
 
-    item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''} ${isHoliday ? 'is-holiday' : ''}`;
+    const priorityClass = `priority-${(ev.priority || 'medium').toLowerCase()}`;
+    item.className = `diary-event-item ${hasConflict ? 'has-conflict' : ''} ${isCancelled ? 'is-cancelled' : ''} ${isHoliday ? 'is-holiday' : ''} ${priorityClass}`;
     item.dataset.id = ev.id;
 
     // Format Date Range badge WITH Day of the Week! (e.g. "Tue • 26 Jan 2027" or "Mon–Wed • 09–11 Feb 2026")

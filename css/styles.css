@@ -442,9 +442,30 @@ body {
   background-color: #fef2f2;
 }
 
-.jump-month-btn.active {
-  background-color: var(--primary);
+.jump-month-btn.active,
+.jump-month-btn.active-month-pill {
+  background-color: var(--primary) !important;
   color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+/* Priority & Category Accent Left Borders on Event Cards */
+.diary-event-item.priority-high {
+  border-left: 4.5px solid #dc2626 !important;
+}
+.diary-event-item.priority-medium {
+  border-left: 4.5px solid #d97706 !important;
+}
+.diary-event-item.priority-low {
+  border-left: 4.5px solid #16a34a !important;
+}
+.diary-event-item.is-holiday {
+  border-left: 4.5px solid #6366f1 !important;
+}
+.diary-event-item.has-conflict {
+  border: 1.5px solid #ef4444 !important;
+  border-left: 6px solid #dc2626 !important;
+  background-color: #fff5f5 !important;
 }
 
 .month-notebook-card {
@@ -992,7 +1013,7 @@ body {
   inset: 0;
   background-color: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
-  z-index: 99;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1141,7 +1162,7 @@ body {
   height: 100vh;
   min-height: 100vh;
   background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 100%);
-  z-index: 9999;
+  z-index: 10002;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1804,8 +1825,29 @@ body {
    FORCED DISPLAY MODES & DYNAMIC RESPONSIVENESS
    --------------------------------------------------------- */
 
-/* MOBILE VIEW RULES (Applies on screens <= 768px unless forced desktop) */
+/* Global Mobile View Safeguards: Prevent unwanted horizontal scrolling */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Hide mobile bottom navigation bar when locked on lock screen */
+.lock-screen-wrapper:not([style*="display: none"]) ~ #app-container #mobile-bottom-nav,
+.lock-screen-wrapper:not([style*="display: none"]) ~ #mobile-bottom-nav,
+#app-container[style*="display: none"] #mobile-bottom-nav,
+#app-container[style*="display: none"] ~ #mobile-bottom-nav {
+  display: none !important;
+}
+
+/* =========================================================================
+   MOBILE DISPLAY RULES: Applied on screens <= 768px (unless forced desktop)
+   AND applied when body.device-mobile is toggled.
+   ========================================================================= */
 @media (max-width: 768px) {
+  body:not(.device-desktop) {
+    font-size: 14px;
+  }
+
   body:not(.device-desktop) .desktop-only-control,
   body:not(.device-desktop) .desktop-nav-pills,
   body:not(.device-desktop) .toolbar-desktop-extras,
@@ -1815,9 +1857,21 @@ body {
 
   body:not(.device-desktop) .btn-mobile-quick-pc {
     display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    padding: 0.22rem 0.55rem !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    border-radius: 9999px !important;
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--primary) !important;
+    min-height: 28px !important;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.35) !important;
+    flex-shrink: 0 !important;
   }
 
-  body:not(.device-desktop) .mobile-bottom-nav {
+  body:not(.device-desktop) #app-container:not([style*="display: none"]) .mobile-bottom-nav {
     display: flex !important;
   }
 
@@ -1829,82 +1883,108 @@ body {
     display: inline-flex !important;
   }
 
+  /* Ultra-Sleek Mobile Header (Guaranteed No Overflow on 320px - 430px screens) */
   body:not(.device-desktop) .header-container {
-    padding: 0.5rem 0.85rem !important;
+    padding: 0.45rem 0.65rem !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 0.5rem !important;
-    min-height: 52px !important;
+    gap: 0.35rem !important;
+    min-height: 48px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   body:not(.device-desktop) .brand-section {
-    width: auto !important;
     display: flex !important;
     align-items: center !important;
-    gap: 0.55rem !important;
+    gap: 0.45rem !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
   }
 
   body:not(.device-desktop) .app-header-avatar {
-    width: 38px !important;
-    height: 38px !important;
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    border-width: 2px !important;
+  }
+
+  body:not(.device-desktop) .brand-details {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   body:not(.device-desktop) .brand-details h1 {
-    font-size: 0.95rem !important;
+    font-size: 0.88rem !important;
     font-weight: 800 !important;
     line-height: 1.15 !important;
     margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 135px !important;
   }
 
   body:not(.device-desktop) .brand-details p {
-    font-size: 0.68rem !important;
-    margin: 0 !important;
-    color: var(--text-muted) !important;
+    display: none !important;
   }
 
   body:not(.device-desktop) .header-controls {
-    width: auto !important;
     display: flex !important;
     align-items: center !important;
-    gap: 0.4rem !important;
-    flex-wrap: nowrap !important;
+    gap: 0.25rem !important;
+    flex-shrink: 0 !important;
   }
 
   body:not(.device-desktop) .year-selector {
-    padding: 0.15rem 0.35rem !important;
-    gap: 0.2rem !important;
-    min-height: 32px !important;
+    padding: 0.12rem 0.25rem !important;
+    gap: 0.15rem !important;
+    min-height: 28px !important;
+    background: var(--bg-subtle) !important;
+    border-radius: 9999px !important;
   }
 
   body:not(.device-desktop) .year-nav-btn {
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 0.85rem !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.8rem !important;
   }
 
   body:not(.device-desktop) .year-display {
-    font-size: 0.85rem !important;
-    min-width: 36px !important;
+    font-size: 0.82rem !important;
+    min-width: 32px !important;
   }
 
   body:not(.device-desktop) .conflict-badge-btn {
-    padding: 0.28rem 0.55rem !important;
-    font-size: 0.74rem !important;
-    min-height: 32px !important;
+    padding: 0.18rem 0.4rem !important;
+    font-size: 0.72rem !important;
+    min-height: 28px !important;
+    border-radius: 9999px !important;
   }
 
+  body:not(.device-desktop) .conflict-badge-btn #conflict-badge-text {
+    display: none !important;
+  }
+
+  /* Main wrapper padding for bottom navigation */
   body:not(.device-desktop) .main-wrapper {
-    padding: 0.75rem 0.75rem 5.5rem !important;
-    max-width: 680px !important;
+    padding: 0.65rem 0.65rem 5.5rem !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 
+  /* Sub-toolbar: Search & Filter Drawer */
   body:not(.device-desktop) .sub-toolbar {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 0.45rem !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.65rem !important;
   }
 
   body:not(.device-desktop) .search-bar-row {
@@ -1916,9 +1996,10 @@ body {
 
   body:not(.device-desktop) .search-input-wrap input {
     font-size: 16px !important;
-    padding: 0.55rem 0.75rem 0.55rem 2.2rem !important;
+    padding: 0.5rem 0.75rem 0.5rem 2.2rem !important;
     width: 100% !important;
     min-height: 40px !important;
+    border-radius: var(--radius-md) !important;
   }
 
   body:not(.device-desktop) #filter-dropdowns-container {
@@ -1928,31 +2009,67 @@ body {
   body:not(.device-desktop) #filter-dropdowns-container.open {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.55rem !important;
+    gap: 0.5rem !important;
     background-color: var(--bg-card) !important;
     border: 1.5px solid var(--border-color) !important;
-    padding: 0.85rem !important;
+    padding: 0.75rem !important;
     border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-md) !important;
     width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   body:not(.device-desktop) #filter-dropdowns-container select {
     width: 100% !important;
     font-size: 16px !important;
-    min-height: 42px !important;
+    min-height: 40px !important;
+    border-radius: var(--radius-md) !important;
   }
 
+  /* Diary Grid on Mobile */
   body:not(.device-desktop) .diary-grid {
     grid-template-columns: 1fr !important;
-    gap: 0.85rem !important;
+    gap: 0.75rem !important;
     min-width: 0 !important;
   }
 
+  body:not(.device-desktop) .month-notebook-card {
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  body:not(.device-desktop) .month-card-header {
+    padding: 0.55rem 0.75rem !important;
+  }
+
+  body:not(.device-desktop) .month-card-body {
+    padding: 0.65rem 0.65rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Mobile Diary Event Items (Card Design) */
   body:not(.device-desktop) .diary-event-item {
-    padding: 0.75rem 0.85rem !important;
+    padding: 0.65rem 0.75rem !important;
     flex-direction: column !important;
-    gap: 0.45rem !important;
+    gap: 0.4rem !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border-color) !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    position: relative !important;
+  }
+
+  body:not(.device-desktop) .diary-event-item:active {
+    background-color: var(--bg-subtle) !important;
+    transform: scale(0.99) !important;
+  }
+
+  body:not(.device-desktop) .event-title-text {
+    font-size: 0.94rem !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    line-height: 1.3 !important;
   }
 
   body:not(.device-desktop) .event-side-badges {
@@ -1962,21 +2079,24 @@ body {
     justify-content: flex-start !important;
     align-items: center !important;
     border-top: 1px dashed var(--border-color) !important;
-    padding-top: 0.45rem !important;
+    padding-top: 0.4rem !important;
     margin-top: 0.2rem !important;
     gap: 0.35rem !important;
   }
 
+  /* Month Quick-Jump Strip on Mobile */
   body:not(.device-desktop) .month-jump-strip {
     padding: 0.35rem 0.5rem !important;
-    margin-bottom: 0.85rem !important;
+    margin-bottom: 0.65rem !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
   }
 
+  /* Modals on Mobile: Bottom Sheet with high z-index */
   body:not(.device-desktop) .modal-overlay {
     padding: 0 !important;
     align-items: flex-end !important;
+    z-index: 10000 !important;
   }
 
   body:not(.device-desktop) .modal-content {
@@ -1986,29 +2106,32 @@ body {
     border-radius: 20px 20px 0 0 !important;
     border-bottom: none !important;
     margin: 0 !important;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3) !important;
   }
 
   body:not(.device-desktop) .modal-header {
-    padding: 1rem 1.2rem !important;
+    padding: 0.85rem 1.15rem !important;
     position: sticky !important;
     top: 0 !important;
     background: var(--bg-card) !important;
     z-index: 10 !important;
+    border-bottom: 1px solid var(--border-color) !important;
   }
 
   body:not(.device-desktop) .modal-body {
-    padding: 1rem 1.2rem !important;
-    gap: 0.9rem !important;
+    padding: 0.9rem 1.15rem !important;
+    gap: 0.85rem !important;
     overflow-y: auto !important;
   }
 
   body:not(.device-desktop) .modal-footer {
-    padding: 0.85rem 1.2rem !important;
+    padding: 0.75rem 1.15rem calc(0.75rem + env(safe-area-inset-bottom, 0)) !important;
     position: sticky !important;
     bottom: 0 !important;
     background: var(--bg-card) !important;
     z-index: 10 !important;
     border-radius: 0 !important;
+    border-top: 1px solid var(--border-color) !important;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;
   }
 
@@ -2023,7 +2146,9 @@ body {
   }
 }
 
-/* EXPLICIT SMART PHONE MODE (Forced via Toggle button on any screen) */
+/* =========================================================================
+   FORCED SMART PHONE MODE (Active when body.device-mobile is set)
+   ========================================================================= */
 body.device-mobile {
   font-size: 14px;
 }
@@ -2037,9 +2162,21 @@ body.device-mobile #header-device-toggle {
 
 body.device-mobile .btn-mobile-quick-pc {
   display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  padding: 0.22rem 0.55rem !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--primary) !important;
+  min-height: 28px !important;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.35) !important;
+  flex-shrink: 0 !important;
 }
 
-body.device-mobile .mobile-bottom-nav {
+body.device-mobile #app-container:not([style*="display: none"]) .mobile-bottom-nav {
   display: flex !important;
 }
 
@@ -2052,83 +2189,105 @@ body.device-mobile .btn-toggle-filters {
 }
 
 body.device-mobile .header-container {
-  padding: 0.5rem 0.85rem !important;
+  padding: 0.45rem 0.65rem !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 0.5rem !important;
-  min-height: 52px !important;
+  gap: 0.35rem !important;
+  min-height: 48px !important;
   max-width: 680px !important;
   margin: 0 auto !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 body.device-mobile .brand-section {
-  width: auto !important;
   display: flex !important;
   align-items: center !important;
-  gap: 0.55rem !important;
+  gap: 0.45rem !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
 }
 
 body.device-mobile .app-header-avatar {
-  width: 38px !important;
-  height: 38px !important;
+  width: 32px !important;
+  height: 32px !important;
+  flex-shrink: 0 !important;
+  border-width: 2px !important;
+}
+
+body.device-mobile .brand-details {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 body.device-mobile .brand-details h1 {
-  font-size: 0.95rem !important;
+  font-size: 0.88rem !important;
   font-weight: 800 !important;
   line-height: 1.15 !important;
   margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 135px !important;
 }
 
 body.device-mobile .brand-details p {
-  font-size: 0.68rem !important;
-  margin: 0 !important;
-  color: var(--text-muted) !important;
+  display: none !important;
 }
 
 body.device-mobile .header-controls {
-  width: auto !important;
   display: flex !important;
   align-items: center !important;
-  gap: 0.4rem !important;
-  flex-wrap: nowrap !important;
+  gap: 0.25rem !important;
+  flex-shrink: 0 !important;
 }
 
 body.device-mobile .year-selector {
-  padding: 0.15rem 0.35rem !important;
-  gap: 0.2rem !important;
-  min-height: 32px !important;
+  padding: 0.12rem 0.25rem !important;
+  gap: 0.15rem !important;
+  min-height: 28px !important;
+  background: var(--bg-subtle) !important;
+  border-radius: 9999px !important;
 }
 
 body.device-mobile .year-nav-btn {
-  width: 24px !important;
-  height: 24px !important;
-  font-size: 0.85rem !important;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 0.8rem !important;
 }
 
 body.device-mobile .year-display {
-  font-size: 0.85rem !important;
-  min-width: 36px !important;
+  font-size: 0.82rem !important;
+  min-width: 32px !important;
 }
 
 body.device-mobile .conflict-badge-btn {
-  padding: 0.28rem 0.55rem !important;
-  font-size: 0.74rem !important;
-  min-height: 32px !important;
+  padding: 0.18rem 0.4rem !important;
+  font-size: 0.72rem !important;
+  min-height: 28px !important;
+  border-radius: 9999px !important;
+}
+
+body.device-mobile .conflict-badge-btn #conflict-badge-text {
+  display: none !important;
 }
 
 body.device-mobile .main-wrapper {
-  padding: 0.75rem 0.75rem 5.5rem !important;
+  padding: 0.65rem 0.65rem 5.5rem !important;
   max-width: 680px !important;
   margin: 0 auto !important;
+  box-sizing: border-box !important;
 }
 
 body.device-mobile .sub-toolbar {
   flex-direction: column !important;
   align-items: stretch !important;
   gap: 0.45rem !important;
-  margin-bottom: 0.75rem !important;
+  margin-bottom: 0.65rem !important;
 }
 
 body.device-mobile .search-bar-row {
@@ -2140,9 +2299,10 @@ body.device-mobile .search-bar-row {
 
 body.device-mobile .search-input-wrap input {
   font-size: 16px !important;
-  padding: 0.55rem 0.75rem 0.55rem 2.2rem !important;
+  padding: 0.5rem 0.75rem 0.5rem 2.2rem !important;
   width: 100% !important;
   min-height: 40px !important;
+  border-radius: var(--radius-md) !important;
 }
 
 body.device-mobile #filter-dropdowns-container {
@@ -2152,31 +2312,65 @@ body.device-mobile #filter-dropdowns-container {
 body.device-mobile #filter-dropdowns-container.open {
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.55rem !important;
+  gap: 0.5rem !important;
   background-color: var(--bg-card) !important;
   border: 1.5px solid var(--border-color) !important;
-  padding: 0.85rem !important;
+  padding: 0.75rem !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-md) !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 body.device-mobile #filter-dropdowns-container select {
   width: 100% !important;
   font-size: 16px !important;
-  min-height: 42px !important;
+  min-height: 40px !important;
+  border-radius: var(--radius-md) !important;
 }
 
 body.device-mobile .diary-grid {
   grid-template-columns: 1fr !important;
-  gap: 0.85rem !important;
+  gap: 0.75rem !important;
   min-width: 0 !important;
 }
 
+body.device-mobile .month-notebook-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.device-mobile .month-card-header {
+  padding: 0.55rem 0.75rem !important;
+}
+
+body.device-mobile .month-card-body {
+  padding: 0.65rem 0.65rem !important;
+  gap: 0.5rem !important;
+}
+
 body.device-mobile .diary-event-item {
-  padding: 0.75rem 0.85rem !important;
+  padding: 0.65rem 0.75rem !important;
   flex-direction: column !important;
-  gap: 0.45rem !important;
+  gap: 0.4rem !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  position: relative !important;
+}
+
+body.device-mobile .diary-event-item:active {
+  background-color: var(--bg-subtle) !important;
+  transform: scale(0.99) !important;
+}
+
+body.device-mobile .event-title-text {
+  font-size: 0.94rem !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+  line-height: 1.3 !important;
 }
 
 body.device-mobile .event-side-badges {
@@ -2186,14 +2380,14 @@ body.device-mobile .event-side-badges {
   justify-content: flex-start !important;
   align-items: center !important;
   border-top: 1px dashed var(--border-color) !important;
-  padding-top: 0.45rem !important;
+  padding-top: 0.4rem !important;
   margin-top: 0.2rem !important;
   gap: 0.35rem !important;
 }
 
 body.device-mobile .month-jump-strip {
   padding: 0.35rem 0.5rem !important;
-  margin-bottom: 0.85rem !important;
+  margin-bottom: 0.65rem !important;
   -webkit-overflow-scrolling: touch !important;
   scrollbar-width: none !important;
 }
@@ -2201,6 +2395,7 @@ body.device-mobile .month-jump-strip {
 body.device-mobile .modal-overlay {
   padding: 0 !important;
   align-items: flex-end !important;
+  z-index: 10000 !important;
 }
 
 body.device-mobile .modal-content {
@@ -2210,29 +2405,32 @@ body.device-mobile .modal-content {
   border-radius: 20px 20px 0 0 !important;
   border-bottom: none !important;
   margin: 0 !important;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3) !important;
 }
 
 body.device-mobile .modal-header {
-  padding: 1rem 1.2rem !important;
+  padding: 0.85rem 1.15rem !important;
   position: sticky !important;
   top: 0 !important;
   background: var(--bg-card) !important;
   z-index: 10 !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 body.device-mobile .modal-body {
-  padding: 1rem 1.2rem !important;
-  gap: 0.9rem !important;
+  padding: 0.9rem 1.15rem !important;
+  gap: 0.85rem !important;
   overflow-y: auto !important;
 }
 
 body.device-mobile .modal-footer {
-  padding: 0.85rem 1.2rem !important;
+  padding: 0.75rem 1.15rem calc(0.75rem + env(safe-area-inset-bottom, 0)) !important;
   position: sticky !important;
   bottom: 0 !important;
   background: var(--bg-card) !important;
   z-index: 10 !important;
   border-radius: 0 !important;
+  border-top: 1px solid var(--border-color) !important;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -2246,9 +2444,9 @@ body.device-mobile .priority-segmented-control {
   gap: 0.4rem !important;
 }
 
-/* ---------------------------------------------------------
-   EXPLICIT COMPUTER (DESKTOP) MODE (Forced via Toggle button)
-   --------------------------------------------------------- */
+/* =========================================================================
+   FORCED COMPUTER (DESKTOP) MODE (Active when body.device-desktop is set)
+   ========================================================================= */
 body.device-desktop .desktop-only-control {
   display: inline-flex !important;
 }
@@ -2361,6 +2559,7 @@ body.device-desktop .modal-overlay {
   padding: 1.5rem !important;
   align-items: center !important;
   justify-content: center !important;
+  z-index: 10000 !important;
 }
 
 body.device-desktop .modal-content {
