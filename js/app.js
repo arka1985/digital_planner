@@ -10,6 +10,7 @@
     currentView: 'diary', // 'diary' | 'calendar' | 'agenda'
     calendarMonth: 0,     // 0 = Jan, 11 = Dec
     diaryLayout: localStorage.getItem('planner_diary_layout') || '4col', // '4col' (All 12 Months) or '2col' (Notebook)
+    deviceMode: localStorage.getItem('planner_device_mode') || ((window.innerWidth <= 820 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) ? 'mobile' : 'desktop'),
     events: [],
     profile: {
       name: "Dr. Arkaprabha Sau",
@@ -161,6 +162,11 @@
     btnLoadSampleDiary: document.getElementById('btn-load-sample-diary'),
     btnLoad2027Holidays: document.getElementById('btn-load-2027-holidays'),
 
+    // Device Display Mode Toggles
+    btnFloatingDeviceToggle: document.getElementById('btn-floating-device-toggle'),
+    floatingToggleIcon: document.getElementById('floating-toggle-icon'),
+    floatingToggleLabel: document.getElementById('floating-toggle-label'),
+
     // Toast
     toast: document.getElementById('toast')
   };
@@ -177,10 +183,72 @@
   }
 
   // ---------------------------------------------------------
+  // DEVICE DISPLAY MODE (Computer vs Smart Phone)
+  // ---------------------------------------------------------
+  function setDeviceMode(mode, showNotification = true) {
+    state.deviceMode = mode;
+    localStorage.setItem('planner_device_mode', mode);
+
+    const isMobile = mode === 'mobile';
+
+    // Apply classes to both <body> and <html>
+    if (isMobile) {
+      document.body.classList.add('device-mobile');
+      document.body.classList.remove('device-desktop');
+      document.documentElement.classList.add('mode-mobile');
+      document.documentElement.classList.remove('mode-desktop');
+    } else {
+      document.body.classList.add('device-desktop');
+      document.body.classList.remove('device-mobile');
+      document.documentElement.classList.add('mode-desktop');
+      document.documentElement.classList.remove('mode-mobile');
+    }
+
+    // Synchronize all toggle buttons across Header, Lock Screen, and Toolbar
+    document.querySelectorAll('.device-toggle-btn').forEach(btn => {
+      const btnMode = btn.dataset.mode;
+      if (btnMode === mode) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    });
+
+    // Update Floating Switcher Pill
+    if (el.floatingToggleIcon && el.floatingToggleLabel) {
+      if (isMobile) {
+        el.floatingToggleIcon.textContent = '📱';
+        el.floatingToggleLabel.textContent = 'Smart Phone';
+        const actionSpan = el.btnFloatingDeviceToggle ? el.btnFloatingDeviceToggle.querySelector('.floating-toggle-action') : null;
+        if (actionSpan) actionSpan.textContent = 'Switch to Computer 💻';
+      } else {
+        el.floatingToggleIcon.textContent = '💻';
+        el.floatingToggleLabel.textContent = 'Computer';
+        const actionSpan = el.btnFloatingDeviceToggle ? el.btnFloatingDeviceToggle.querySelector('.floating-toggle-action') : null;
+        if (actionSpan) actionSpan.textContent = 'Switch to Phone 📱';
+      }
+    }
+
+    if (showNotification) {
+      showToast(isMobile ? '📱 Switched to Smart Phone (Mobile) Display' : '💻 Switched to Computer (Desktop) Display');
+    }
+  }
+
+  function toggleDeviceMode() {
+    const nextMode = state.deviceMode === 'mobile' ? 'desktop' : 'mobile';
+    setDeviceMode(nextMode, true);
+  }
+
+  // ---------------------------------------------------------
   // INITIALIZATION & VAULT AUTH
   // ---------------------------------------------------------
   function initApp() {
     setupEventListeners();
+
+    // Initialize Device Mode Display (Computer vs Smart Phone)
+    setDeviceMode(state.deviceMode, false);
 
     // Check if vault is configured
     if (PlannerStorage.isVaultConfigured()) {
@@ -979,6 +1047,20 @@
   // EVENT LISTENERS SETUP
   // ---------------------------------------------------------
   function setupEventListeners() {
+    // Device Display Mode Toggles (Computer vs Smart Phone)
+    document.querySelectorAll('.device-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const mode = btn.dataset.mode;
+        if (mode) setDeviceMode(mode, true);
+      });
+    });
+
+    if (el.btnFloatingDeviceToggle) {
+      el.btnFloatingDeviceToggle.addEventListener('click', () => {
+        toggleDeviceMode();
+      });
+    }
+
     // Mode Switcher Tabs (Log In vs Set New Password / Reset)
     if (el.tabLogin) {
       el.tabLogin.addEventListener('click', () => showUnlockScreen());

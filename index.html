@@ -13,6 +13,17 @@
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Immediate Display Mode Initializer (Zero layout flicker) -->
+  <script>
+    (function() {
+      try {
+        var savedMode = localStorage.getItem('planner_device_mode');
+        var isMobile = savedMode ? (savedMode === 'mobile') : (window.innerWidth <= 820 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+        document.documentElement.classList.add(isMobile ? 'mode-mobile' : 'mode-desktop');
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -26,6 +37,20 @@
         <img src="profile.png" alt="Dr. Arkaprabha Sau" class="login-user-photo">
         <h2 class="login-doctor-name">Dr. Arkaprabha Sau</h2>
         <p class="login-subtitle">Monthly Schedule & Duty Planner</p>
+      </div>
+
+      <!-- Display Mode Toggle (Computer vs Smart Phone) on Lock Screen -->
+      <div class="login-device-toggle-bar">
+        <div class="device-mode-toggle" id="lock-device-toggle" role="group" aria-label="Display Mode">
+          <button type="button" class="device-toggle-btn btn-device-desktop active" data-mode="desktop" title="Optimized for Computer / Desktop">
+            <span class="device-btn-icon">💻</span>
+            <span class="device-btn-text">Computer</span>
+          </button>
+          <button type="button" class="device-toggle-btn btn-device-mobile" data-mode="mobile" title="Optimized for Smart Phone / Mobile">
+            <span class="device-btn-icon">📱</span>
+            <span class="device-btn-text">Smart Phone</span>
+          </button>
+        </div>
       </div>
 
       <!-- Mode Switcher Tabs: Log In vs Set Passcode / Reset -->
@@ -146,6 +171,18 @@
         </button>
       </div>
 
+      <!-- Device Display Mode Toggle (Computer vs Smart Phone) -->
+      <div class="device-mode-toggle" id="header-device-toggle" role="group" aria-label="Display Mode">
+        <button type="button" class="device-toggle-btn btn-device-desktop active" data-mode="desktop" title="Display optimized for Computer / Desktop">
+          <span class="device-btn-icon">💻</span>
+          <span class="device-btn-text">Computer</span>
+        </button>
+        <button type="button" class="device-toggle-btn btn-device-mobile" data-mode="mobile" title="Display optimized for Smart Phone / Mobile">
+          <span class="device-btn-icon">📱</span>
+          <span class="device-btn-text">Smart Phone</span>
+        </button>
+      </div>
+
       <!-- Year Selector, Conflict Badge & Actions -->
       <div class="header-controls">
         <!-- Year Navigator -->
@@ -233,6 +270,18 @@
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+        <!-- Device Display Mode Toggle (Sub-toolbar) -->
+        <div class="device-mode-toggle" id="toolbar-device-toggle" role="group" aria-label="Display Mode">
+          <button type="button" class="device-toggle-btn btn-device-desktop active" data-mode="desktop" title="Optimized for Computer / Desktop">
+            <span class="device-btn-icon">💻</span>
+            <span class="device-btn-text">Computer</span>
+          </button>
+          <button type="button" class="device-toggle-btn btn-device-mobile" data-mode="mobile" title="Optimized for Smart Phone / Mobile">
+            <span class="device-btn-icon">📱</span>
+            <span class="device-btn-text">Smart Phone</span>
+          </button>
+        </div>
+
         <!-- Layout Switcher (See all 12 months at once) -->
         <div class="nav-pills" style="padding: 0.15rem;">
           <button id="btn-layout-4col" class="pill-btn active" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;" title="12-Month Wall Grid: View all 12 months together">
@@ -583,8 +632,17 @@
     </div>
   </div>
 
+  <!-- Floating Quick Display Mode Switcher Pill (Always accessible while scrolling) -->
+  <aside id="floating-device-toggle" class="floating-device-toggle" aria-label="Quick display mode switch">
+    <button type="button" id="btn-floating-device-toggle" class="quick-toggle-pill" title="Click to toggle between Computer and Smart Phone display">
+      <span class="floating-toggle-icon" id="floating-toggle-icon">📱</span>
+      <span class="floating-toggle-label" id="floating-toggle-label">Smart Phone</span>
+      <span class="floating-toggle-action">Switch ⇄</span>
+    </button>
+  </aside>
+
   <!-- Toast Notification Container -->
-  <div id="toast" style="position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1e293b; color: #fff; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); box-shadow: var(--shadow-xl); font-size: 0.875rem; font-weight: 600; display: none; z-index: 999; animation: slideUp 0.2s ease;">
+  <div id="toast" style="position: fixed; bottom: 4.8rem; right: 1.5rem; background: #1e293b; color: #fff; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); box-shadow: var(--shadow-xl); font-size: 0.875rem; font-weight: 600; display: none; z-index: 1000; animation: slideUp 0.2s ease;">
     Notification
   </div>
 
