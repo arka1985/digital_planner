@@ -11,6 +11,8 @@
     calendarMonth: 0,     // 0 = Jan, 11 = Dec
     diaryLayout: localStorage.getItem('planner_diary_layout') || '4col', // '4col' (All 12 Months) or '2col' (Notebook)
     deviceMode: localStorage.getItem('planner_device_mode') || ((window.innerWidth <= 820 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) ? 'mobile' : 'desktop'),
+    selectedMonthIdx: new Date().getMonth(), // 0 = Jan, 11 = Dec
+    mobileDiaryMode: 'single', // 'single' (focused month carousel) or 'all' (all 12 months)
     events: [],
     profile: {
       name: "Dr. Arkaprabha Sau",
@@ -166,6 +168,41 @@
     btnFloatingDeviceToggle: document.getElementById('btn-floating-device-toggle'),
     floatingToggleIcon: document.getElementById('floating-toggle-icon'),
     floatingToggleLabel: document.getElementById('floating-toggle-label'),
+    btnMobileQuickPc: document.getElementById('btn-mobile-quick-pc'),
+
+    // Mobile Search & Filter Drawer
+    btnToggleFilters: document.getElementById('btn-toggle-filters'),
+    activeFilterBadge: document.getElementById('active-filter-badge'),
+    filterDropdownsContainer: document.getElementById('filter-dropdowns-container'),
+    btnClearFilters: document.getElementById('btn-clear-filters'),
+
+    // Mobile Month Bar
+    mobileMonthBar: document.getElementById('mobile-month-bar'),
+    btnMobPrevMonth: document.getElementById('btn-mob-prev-month'),
+    btnMobNextMonth: document.getElementById('btn-mob-next-month'),
+    mobActiveMonthName: document.getElementById('mob-active-month-name'),
+    mobActiveMonthCount: document.getElementById('mob-active-month-count'),
+    btnMobModeFocus: document.getElementById('btn-mob-mode-focus'),
+    btnMobModeAll: document.getElementById('btn-mob-mode-all'),
+
+    // Mobile Bottom Navigation Bar
+    mobileBottomNav: document.getElementById('mobile-bottom-nav'),
+    mobNavDiary: document.getElementById('mob-nav-diary'),
+    mobNavCalendar: document.getElementById('mob-nav-calendar'),
+    mobNavAgenda: document.getElementById('mob-nav-agenda'),
+    mobNavAdd: document.getElementById('mob-nav-add'),
+    mobNavMenu: document.getElementById('mob-nav-menu'),
+
+    // Mobile Menu Action Sheet Modal
+    modalMobileMenu: document.getElementById('modal-mobile-menu'),
+    btnCloseMobMenu: document.getElementById('btn-close-mob-menu'),
+    mobMenuBtnSwitchPc: document.getElementById('mob-menu-btn-switch-pc'),
+    mobMenuBtnHolidays: document.getElementById('mob-menu-btn-holidays'),
+    mobMenuBtnConflicts: document.getElementById('mob-menu-btn-conflicts'),
+    mobMenuConflictText: document.getElementById('mob-menu-conflict-text'),
+    mobMenuBtnSettings: document.getElementById('mob-menu-btn-settings'),
+    mobMenuBtnPrint: document.getElementById('mob-menu-btn-print'),
+    mobMenuBtnLock: document.getElementById('mob-menu-btn-lock'),
 
     // Toast
     toast: document.getElementById('toast')
@@ -336,10 +373,16 @@
       el.btnConflictBadge.className = 'conflict-badge-btn has-conflicts';
       el.conflictBadgeIcon.textContent = '⚠️';
       el.conflictBadgeText.textContent = `${distinctPairs} Conflict${distinctPairs > 1 ? 's' : ''}`;
+      if (el.mobMenuConflictText) {
+        el.mobMenuConflictText.textContent = `${distinctPairs} overlapping schedule conflict${distinctPairs > 1 ? 's' : ''} detected`;
+      }
     } else {
       el.btnConflictBadge.className = 'conflict-badge-btn no-conflicts';
       el.conflictBadgeIcon.textContent = '✓';
       el.conflictBadgeText.textContent = '0 Conflicts';
+      if (el.mobMenuConflictText) {
+        el.mobMenuConflictText.textContent = 'No overlapping duties (all clear)';
+      }
     }
   }
 
@@ -406,6 +449,25 @@
     } else {
       el.filteredCountText.textContent = `Filtered ${count} of ${total} entries`;
     }
+    updateFilterBadge();
+  }
+
+  function updateFilterBadge() {
+    if (!el.activeFilterBadge || !el.btnToggleFilters) return;
+    let activeCount = 0;
+    if (state.activeFilter.search) activeCount++;
+    if (state.activeFilter.category) activeCount++;
+    if (state.activeFilter.priority) activeCount++;
+    if (state.activeFilter.status) activeCount++;
+
+    if (activeCount > 0) {
+      el.activeFilterBadge.textContent = activeCount;
+      el.activeFilterBadge.style.display = 'inline-flex';
+      el.btnToggleFilters.classList.add('has-active');
+    } else {
+      el.activeFilterBadge.style.display = 'none';
+      el.btnToggleFilters.classList.remove('has-active');
+    }
   }
 
   // ---------------------------------------------------------
@@ -424,6 +486,18 @@
 
     const filtered = getFilteredEvents();
     updateFilteredCount(filtered.length, state.events.length);
+
+    const isMobileMode = state.deviceMode === 'mobile' || (window.innerWidth <= 768 && state.deviceMode !== 'desktop');
+    const isSingleMonthMobile = isMobileMode && state.mobileDiaryMode === 'single';
+
+    // Update Mobile Month Navigation Bar
+    if (el.mobActiveMonthName) {
+      el.mobActiveMonthName.textContent = `${MONTH_NAMES[state.selectedMonthIdx]} ${state.currentYear}`;
+    }
+    if (el.btnMobModeFocus && el.btnMobModeAll) {
+      el.btnMobModeFocus.classList.toggle('active', state.mobileDiaryMode === 'single');
+      el.btnMobModeAll.classList.toggle('active', state.mobileDiaryMode === 'all');
+    }
 
     // Update Month Quick-Jump Strip buttons
     const jumpBtns = el.monthJumpStrip ? el.monthJumpStrip.querySelectorAll('.jump-month-btn') : [];
@@ -444,9 +518,16 @@
       // Count conflicts in this month
       const monthConflictsCount = monthEvents.filter(ev => state.conflictsMap.has(ev.id)).length;
 
+      // Update active month count in mobile month bar for currently selected month
+      if (monthIdx === state.selectedMonthIdx && el.mobActiveMonthCount) {
+        el.mobActiveMonthCount.textContent = `${monthEvents.length} dut${monthEvents.length === 1 ? 'y' : 'ies'}`;
+      }
+
       // Update Jump button
       if (jumpBtns[monthIdx]) {
         const btn = jumpBtns[monthIdx];
+        const isSelected = monthIdx === state.selectedMonthIdx;
+        btn.classList.toggle('active-month-pill', isSelected);
         if (monthConflictsCount > 0) {
           btn.classList.add('has-conflicts');
           btn.innerHTML = `🚨 ${monthName.slice(0, 3)} (${monthConflictsCount})`;
@@ -456,6 +537,11 @@
           btn.textContent = monthName.slice(0, 3);
           btn.title = `${monthName}: ${monthEvents.length} event(s)`;
         }
+      }
+
+      // In Mobile Single-Month Carousel Mode: only render card for currently selected month
+      if (isSingleMonthMobile && monthIdx !== state.selectedMonthIdx) {
+        continue;
       }
 
       // Sort by startDate
@@ -788,9 +874,23 @@
     el.viewCalendar.style.display = state.currentView === 'calendar' ? 'block' : 'none';
     el.viewAgenda.style.display = state.currentView === 'agenda' ? 'flex' : 'none';
 
+    // Desktop nav pills
     el.navBtnDiary.className = `pill-btn ${state.currentView === 'diary' ? 'active' : ''}`;
     el.navBtnCalendar.className = `pill-btn ${state.currentView === 'calendar' ? 'active' : ''}`;
     el.navBtnAgenda.className = `pill-btn ${state.currentView === 'agenda' ? 'active' : ''}`;
+
+    // Mobile bottom nav buttons
+    if (el.mobNavDiary) el.mobNavDiary.classList.toggle('active', state.currentView === 'diary');
+    if (el.mobNavCalendar) el.mobNavCalendar.classList.toggle('active', state.currentView === 'calendar');
+    if (el.mobNavAgenda) el.mobNavAgenda.classList.toggle('active', state.currentView === 'agenda');
+
+    // Mobile Month Bar & Jump Strip only shown in Diary view
+    if (el.mobileMonthBar) {
+      el.mobileMonthBar.style.display = state.currentView === 'diary' ? '' : 'none';
+    }
+    if (el.monthJumpStrip) {
+      el.monthJumpStrip.style.display = state.currentView === 'diary' ? '' : 'none';
+    }
 
     if (state.currentView === 'diary') renderDiaryView();
     else if (state.currentView === 'calendar') renderCalendarView();
@@ -1305,17 +1405,154 @@
       });
     }
 
-    // Month Quick-Jump Strip Click (Smooth jump to any of the 12 months)
+    // Mobile Quick Switch to Computer View Button in Header
+    if (el.btnMobileQuickPc) {
+      el.btnMobileQuickPc.addEventListener('click', () => {
+        setDeviceMode('desktop', true);
+      });
+    }
+
+    // Mobile Search & Filter Drawer Toggle & Clear
+    if (el.btnToggleFilters && el.filterDropdownsContainer) {
+      el.btnToggleFilters.addEventListener('click', () => {
+        el.filterDropdownsContainer.classList.toggle('open');
+      });
+    }
+    if (el.btnClearFilters) {
+      el.btnClearFilters.addEventListener('click', () => {
+        state.activeFilter.search = '';
+        state.activeFilter.category = '';
+        state.activeFilter.priority = '';
+        state.activeFilter.status = '';
+        el.filterSearchInput.value = '';
+        el.filterCategorySelect.value = '';
+        if (el.filterPrioritySelect) el.filterPrioritySelect.value = '';
+        el.filterStatusSelect.value = '';
+        updateFilterBadge();
+        if (el.filterDropdownsContainer) el.filterDropdownsContainer.classList.remove('open');
+        renderCurrentView();
+      });
+    }
+
+    // Mobile Month Navigation Controls (Prev, Next, Mode Switch)
+    if (el.btnMobPrevMonth) {
+      el.btnMobPrevMonth.addEventListener('click', () => {
+        state.selectedMonthIdx = (state.selectedMonthIdx - 1 + 12) % 12;
+        renderDiaryView();
+      });
+    }
+    if (el.btnMobNextMonth) {
+      el.btnMobNextMonth.addEventListener('click', () => {
+        state.selectedMonthIdx = (state.selectedMonthIdx + 1) % 12;
+        renderDiaryView();
+      });
+    }
+    if (el.btnMobModeFocus) {
+      el.btnMobModeFocus.addEventListener('click', () => {
+        state.mobileDiaryMode = 'single';
+        renderDiaryView();
+      });
+    }
+    if (el.btnMobModeAll) {
+      el.btnMobModeAll.addEventListener('click', () => {
+        state.mobileDiaryMode = 'all';
+        renderDiaryView();
+      });
+    }
+
+    // Mobile Bottom Navigation Bar Actions
+    if (el.mobNavDiary) {
+      el.mobNavDiary.addEventListener('click', () => {
+        state.currentView = 'diary';
+        renderCurrentView();
+      });
+    }
+    if (el.mobNavCalendar) {
+      el.mobNavCalendar.addEventListener('click', () => {
+        state.currentView = 'calendar';
+        renderCurrentView();
+      });
+    }
+    if (el.mobNavAgenda) {
+      el.mobNavAgenda.addEventListener('click', () => {
+        state.currentView = 'agenda';
+        renderCurrentView();
+      });
+    }
+    if (el.mobNavAdd) {
+      el.mobNavAdd.addEventListener('click', () => {
+        const mStr = String(state.selectedMonthIdx + 1).padStart(2, '0');
+        openNewEventModal(`${state.currentYear}-${mStr}-01`);
+      });
+    }
+    if (el.mobNavMenu) {
+      el.mobNavMenu.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.add('active');
+      });
+    }
+
+    // Mobile Quick Menu Action Sheet Modal
+    if (el.btnCloseMobMenu) {
+      el.btnCloseMobMenu.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+      });
+    }
+    if (el.mobMenuBtnSwitchPc) {
+      el.mobMenuBtnSwitchPc.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        setDeviceMode('desktop', true);
+      });
+    }
+    if (el.mobMenuBtnHolidays) {
+      el.mobMenuBtnHolidays.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        import2027Holidays();
+      });
+    }
+    if (el.mobMenuBtnConflicts) {
+      el.mobMenuBtnConflicts.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        openConflictCenterModal();
+      });
+    }
+    if (el.mobMenuBtnSettings) {
+      el.mobMenuBtnSettings.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        el.btnOpenSettings.click();
+      });
+    }
+    if (el.mobMenuBtnPrint) {
+      el.mobMenuBtnPrint.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        window.print();
+      });
+    }
+    if (el.mobMenuBtnLock) {
+      el.mobMenuBtnLock.addEventListener('click', () => {
+        if (el.modalMobileMenu) el.modalMobileMenu.classList.remove('active');
+        PlannerStorage.lockVault();
+        showUnlockScreen();
+        showToast('🔒 Planner locked. Sensitive data cleared from memory.');
+      });
+    }
+
+    // Month Quick-Jump Strip Click (Smooth jump or select month in carousel)
     if (el.monthJumpStrip) {
       el.monthJumpStrip.addEventListener('click', (e) => {
         const btn = e.target.closest('.jump-month-btn');
         if (btn && btn.dataset.month !== undefined) {
           const mIdx = parseInt(btn.dataset.month, 10);
-          const targetCard = document.getElementById(`month-card-${mIdx}`);
-          if (targetCard) {
-            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            targetCard.style.outline = '3px solid var(--primary)';
-            setTimeout(() => { targetCard.style.outline = ''; }, 1200);
+          state.selectedMonthIdx = mIdx;
+          const isMobile = state.deviceMode === 'mobile' || (window.innerWidth <= 768 && state.deviceMode !== 'desktop');
+          if (isMobile && state.mobileDiaryMode === 'single') {
+            renderDiaryView();
+          } else {
+            const targetCard = document.getElementById(`month-card-${mIdx}`);
+            if (targetCard) {
+              targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetCard.style.outline = '3px solid var(--primary)';
+              setTimeout(() => { targetCard.style.outline = ''; }, 1200);
+            }
           }
         }
       });
